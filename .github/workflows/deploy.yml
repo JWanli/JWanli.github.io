@@ -1,0 +1,58 @@
+# 这是一个自动化部署脚本
+name: Deploy to GitHub Pages
+
+on:
+  # 当代码推送到 main 分支时触发
+  push:
+    branches: ["main"]
+
+  # 允许你手动点击按钮触发
+  workflow_dispatch:
+
+# 设置权限，允许脚本修改 GitHub Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# 并发控制：防止多个部署同时进行
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  # 第一步：构建 (Build)
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout (下载代码)
+        uses: actions/checkout@v4
+      
+      - name: Setup Node (安装 Node.js)
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: 'npm'
+          
+      - name: Install dependencies (安装依赖)
+        run: npm install
+        
+      - name: Build (编译打包)
+        run: npm run build
+        
+      - name: Upload artifact (上传构建结果)
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./dist
+
+  # 第二步：部署 (Deploy)
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to GitHub Pages (发布到 Pages)
+        id: deployment
+        uses: actions/deploy-pages@v4
