@@ -3,11 +3,11 @@
     
     <img :src="logoImage" alt="Logo" class="my-logo" />
 
-    <h1>👋 欢迎来到 JWanli 的武术实验室</h1>
+    <h1>👋 欢迎来到 陆合枪汇</h1>
     <p class="subtitle">这里记录大枪等级分、竞技赛事活动以及我的个人思考。</p>
     
     <div class="intro-box">
-      <h3>🛠️ 关于本项目</h3>
+      <h3>🛠️ 关于陆合枪汇</h3>
       <p>本项目基于 Vue 3 + Vite 构建，旨在打造一个轻量级、可视化的武术数据发布平台。</p>
     </div>
   </div>

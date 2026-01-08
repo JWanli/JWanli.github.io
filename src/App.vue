@@ -14,7 +14,7 @@
       >
         <el-menu-item index="/">
           <span style="font-size: 20px; font-weight: bold; margin-right: 10px;">🦾</span>
-          <span style="font-weight: bold;">JWanli 的工程站</span>
+          <span style="font-weight: bold;">陆合枪汇</span>
         </el-menu-item>
         <div class="flex-grow" /> <el-menu-item index="/">主页</el-menu-item>
         <el-menu-item index="/rank">排行榜</el-menu-item>
