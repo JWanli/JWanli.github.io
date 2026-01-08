@@ -1,1 +1,58 @@
-pages test first
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>测试排行榜</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; max-width: 800px; margin: 40px auto; padding: 20px; }
+        h1 { text-align: center; color: #333; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background-color: #007bff; color: white; }
+        tr:hover { background-color: #f5f5f5; }
+        .update-time { text-align: right; color: #888; font-size: 0.9em; }
+    </style>
+</head>
+<body>
+
+    <h1>🏆 工程测试 排行榜</h1>
+    <p class="update-time">数据来源：静态文件 (data.json)</p>
+
+    <table id="score-table">
+        <thead>
+            <tr>
+                <th>排名</th>
+                <th>名称/ID</th>
+                <th>分数</th>
+                <th>记录日期</th>
+            </tr>
+        </thead>
+        <tbody id="table-body">
+            </tbody>
+    </table>
+
+    <script>
+        // 核心逻辑：读取 data.json 并生成表格
+        fetch('./data.json')
+            .then(response => response.json())
+            .then(data => {
+                const tableBody = document.getElementById('table-body');
+                
+                data.forEach(item => {
+                    // 创建一行
+                    const row = document.createElement('tr');
+                    // 填入数据
+                    row.innerHTML = `
+                        <td>${item.rank}</td>
+                        <td><strong>${item.name}</strong></td>
+                        <td>${item.score}</td>
+                        <td>${item.date}</td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            })
+            .catch(error => console.error('无法读取排行榜数据:', error));
+    </script>
+
+</body>
+</html>
