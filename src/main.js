@@ -8,6 +8,8 @@ import 'element-plus/dist/index.css'
 // 2. 引入 路由
 import router from './router'
 
+import 'element-plus/theme-chalk/dark/css-vars.css'
+
 const app = createApp(App)
 
 app.use(ElementPlus) // 安装 UI 库

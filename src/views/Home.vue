@@ -22,7 +22,7 @@ import logoImage from '../assets/liuhelogo.png'
 /* 把两个 style 合并成一个了，看起来更干净 */
 .home-content {
   text-align: center;
-  padding: 40px;
+  padding: 40px 20px;
 }
 
 .my-logo {
@@ -32,21 +32,32 @@ import logoImage from '../assets/liuhelogo.png'
   object-fit: cover;  /* 防止图片变形 */
   margin-bottom: 20px;
   box-shadow: 0 4px 10px rgba(0,0,0,0.1); /* 加点阴影 */
-  border: 2px solid #eee; /* 给图片加个细边框，更好看 */
+  border: 2px solid var(--el-border-color);
 }
 
 .subtitle {
-  color: #666;
+  /*color: #666;*/
+  color: var(--el-text-color-secondary);
   font-size: 1.2em;
   margin-bottom: 30px;
 }
 
 .intro-box {
-  background: #f8f9fa;
+  /*background: #f8f9fa;*/
+  background: var(--el-fill-color);
+  border: 1px solid var(--el-border-color);
   padding: 20px;
   border-radius: 8px;
   display: inline-block;
   text-align: left;
   max-width: 600px; /* 限制一下文字框的最大宽度，防止太宽读着累 */
+}
+.intro-box h3 {
+  color: var(--el-text-color-primary);
+  margin-top: 0;
+}
+.intro-box p {
+  color: var(--el-text-color-regular);
+  margin-bottom: 0;
 }
 </style>
