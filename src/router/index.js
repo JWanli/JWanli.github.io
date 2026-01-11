@@ -1,19 +1,22 @@
-import { createRouter, createWebHashHistory } from 'vue-router'
-// 引入刚才创建的三个页面
+import { createRouter, createWebHashHistory } from 'vue-router' // 或者 createWebHistory
+
+// 引入组件
 import Home from '../views/Home.vue'
 import Leaderboard from '../views/Leaderboard.vue'
 import Activity from '../views/Activity.vue'
+import Profile from '../views/Profile.vue' // <--- 新增引入
 
 const routes = [
-  { path: '/', component: Home },           // 根路径显示主页
-  { path: '/rank', component: Leaderboard }, // /rank 显示排行榜
-  { path: '/activity', component: Activity } // /activity 显示活动
+  { path: '/', component: Home },
+  { path: '/rank', component: Leaderboard },
+  { path: '/activity', component: Activity },
+  // 新增详情页路由，:id 是动态参数
+  { path: '/profile/:id', component: Profile }, 
 ]
 
 const router = createRouter({
-  // 使用 Hash 模式 (网址里带 # 号)，这种模式在 GitHub Pages 上最不容易出错
   history: createWebHashHistory(),
-  routes
+  routes,
 })
 
 export default router

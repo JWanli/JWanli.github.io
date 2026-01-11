@@ -29,7 +29,7 @@ PLAYERS = [
 RULES = [
     {"type": "round", "params": {"C": 7, "G": 7}},  # 7回合制
     {"type": "round", "params": {"C": 5, "G": 5}},  # 5回合制
-    {"type": "cap", "params": {"Q": 20}},           # 2本制(20分)
+    {"type": "cap", "params": {"Q": 11}},           # 11分
 ]
 
 def generate_mock_data(count=50):
