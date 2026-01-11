@@ -1,9 +1,15 @@
 from supabase import create_client, Client
 
 # 1. 配置 (务必使用 service_role key)
-SUPABASE_URL = "https://hvsmloywzdlvegjfvyss.supabase.co"
-SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh2c21sb3l3emRsdmVnamZ2eXNzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2Nzk0Mjg1NywiZXhwIjoyMDgzNTE4ODU3fQ.pPVNQGhC7A2mP2pSNwBkSxUn8FJtn6UOVwEW45YQsn4" 
-supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+import os
+from dotenv import load_dotenv # 需要 pip install python-dotenv
+
+load_dotenv()
+url = os.environ.get("SUPABASE_URL")
+key = os.environ.get("SUPABASE_KEY")
+if url is None or key is None:
+    raise RuntimeError("Missing SUPABASE_URL or SUPABASE_KEY; set them in your environment or .env file.")
+supabase: Client = create_client(url, key)
 
 DEFAULT_ELO = 450 # 如果选手没有历史记录了，恢复成的默认分
 
