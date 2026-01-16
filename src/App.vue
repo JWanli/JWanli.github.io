@@ -9,7 +9,8 @@
         router
         class="custom-menu"
       >
-        <el-menu-item index="/">
+        <!-- 添加 class="logo-menu-item" 以便 CSS 控制 -->
+        <el-menu-item index="/" class="logo-menu-item">
           <span style="font-size: 20px; font-weight: bold; margin-right: 10px;">🦾</span>
           <span style="font-weight: bold;">陆合枪汇</span>
         </el-menu-item>
@@ -140,9 +141,14 @@ html, body {
 
 /* === 📱 移动端适配 CSS === */
 @media (max-width: 768px) {
+  /* 隐藏左上角 LOGO 栏，节省空间 */
+  .logo-menu-item {
+    display: none !important;
+  }
+
   /* 减小内边距，让内容更宽 */
   .main-box {
-    padding: 10px;
+    padding: 0 !important; /* 排行榜需要去边框，这里直接设为0，由各页面自己控制内边距 */
   }
   
   /* 紧凑导航栏 */

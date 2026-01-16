@@ -10,13 +10,15 @@
         v-loading="loading" 
         :data="tableData" 
         style="width: 100%" 
-        :row-style="{ height: '65px' }" 
+        :row-style="{ height: isMobile ? '50px' : '65px' }" 
         stripe
+        :size="isMobile ? 'small' : 'default'"
         :default-sort="{ prop: 'current_elo', order: 'descending' }"
+        class="custom-table"
       >
         
-        <!-- 调整排名列宽度，手机上更窄 -->
-        <el-table-column type="index" label="排名" :width="isMobile ? 50 : 80" align="center">
+        <!-- 1. 排名 -->
+        <el-table-column type="index" label="排名" :width="isMobile ? 38 : 80" align="center">
           <template #default="scope">
             <div class="rank-badge" :class="getRankClass(scope.$index)">
               {{ scope.$index + 1 }}
@@ -24,24 +26,24 @@
           </template>
         </el-table-column>
 
-        <el-table-column label="选手" min-width="140">
+        <!-- 2. 选手：自适应 -->
+        <el-table-column label="选手" min-width="90">
           <template #default="scope">
             <div class="player-cell" @click="goToProfile(scope.row.id)">
-              <el-avatar :size="isMobile ? 36 : 44" :src="scope.row.avatar_url" class="avatar">
+              <el-avatar :size="isMobile ? 32 : 44" :src="scope.row.avatar_url" class="avatar">
                 {{ scope.row.name.charAt(0) }}
               </el-avatar>
               
               <div class="name-info">
                 <span class="main-name">{{ scope.row.name }}</span>
-                <!-- 手机上名字太长可以考虑换行，这里暂时保持横向 -->
-                <span v-if="scope.row.nick_name" class="sub-name">{{ scope.row.nick_name }}</span>
+                <span v-if="!isMobile && scope.row.nick_name" class="sub-name">{{ scope.row.nick_name }}</span>
               </div>
             </div>
           </template>
         </el-table-column>
 
-        <!-- 📱 手机端隐藏：等级 -->
-        <el-table-column v-if="!isMobile" label="等级" width="100" align="center">
+        <!-- 3. 等级：去除 label 文字 -->
+        <el-table-column label="" :width="isMobile ? 30 : 100" align="center">
           <template #default="scope">
             <div 
               v-if="scope.row.grade > 0"
@@ -50,27 +52,31 @@
             >
               {{ scope.row.grade }}
             </div>
-            <span v-else class="no-level">-</span>
+            <span v-else class="no-level" style="font-size: 12px; color: #ddd;">•</span>
           </template>
         </el-table-column>
 
-        <!-- 📱 手机端隐藏：地区 -->
-        <el-table-column v-if="!isMobile" prop="region" label="地区" width="120" align="center">
+        <!-- 4. 地区：略微缩小移动端宽度 -->
+        <el-table-column prop="region" label="地区" :width="isMobile ? 50 : 120" align="center" show-overflow-tooltip>
           <template #default="scope">
-            <span class="region-text">{{ scope.row.region || '-' }}</span>
+            <span class="region-text" :style="{ fontSize: isMobile ? '12px' : '15px' }">
+              {{ scope.row.region || '-' }}
+            </span>
           </template>
         </el-table-column>
 
-        <el-table-column prop="current_elo" label="分数" :width="isMobile ? 80 : 140" sortable align="center">
+        <!-- 5. 分数：宽度微增，确保"分数"二字不换行 -->
+        <el-table-column prop="current_elo" label="分数" :width="isMobile ? 55 : 140" sortable align="center">
           <template #default="scope">
             <span class="elo-text">{{ scope.row.current_elo }}</span>
           </template>
         </el-table-column>
 
-        <!-- 📱 手机端隐藏：活跃度 -->
-        <el-table-column v-if="!isMobile" prop="activity" label="活跃度" width="140" sortable align="center">
+        <!-- 6. 活跃度：改为"活跃"，宽度微增 -->
+        <el-table-column prop="activity" label="活跃" :width="isMobile ? 45 : 140" sortable align="center">
           <template #default="scope">
-            <div class="activity-cell">
+            <!-- 电脑端：进度条 -->
+            <div v-if="!isMobile" class="activity-cell">
               <el-progress 
                 :percentage="scope.row.activity || 0" 
                 :color="getActivityColor(scope.row.activity)"
@@ -80,6 +86,14 @@
               />
               <span class="activity-num">{{ scope.row.activity || 0 }}%</span>
             </div>
+            <!-- 手机端：纯数字 -->
+            <span 
+              v-else 
+              style="font-size: 12px; font-weight: bold;" 
+              :style="{ color: getActivityColor(scope.row.activity) }"
+            >
+              {{ scope.row.activity || 0 }}
+            </span>
           </template>
         </el-table-column>
 
@@ -89,18 +103,17 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue' // 引入 computed
+import { ref, onMounted, computed } from 'vue' 
 import { useRouter } from 'vue-router'
 import { supabase } from '../supabase'
-import { useWindowSize } from '@vueuse/core' // 引入窗口尺寸检测
+import { useWindowSize } from '@vueuse/core'
 
 const router = useRouter()
 const loading = ref(true)
 const tableData = ref([])
 
-// 📱 响应式检测移动端
 const { width } = useWindowSize()
-const isMobile = computed(() => width.value < 768) // 小于768px视为移动端
+const isMobile = computed(() => width.value < 768) 
 
 const fetchData = async () => {
   loading.value = true
@@ -123,17 +136,13 @@ const goToProfile = (id) => {
   router.push(`/profile/${id}`)
 }
 
-// === 样式逻辑控制 ===
-
-// 1. 排名颜色逻辑
 const getRankClass = (index) => {
-  if (index === 0) return 'rank-1' // 冠军
-  if (index === 1) return 'rank-2' // 亚军
-  if (index === 2) return 'rank-3' // 季军
-  return 'rank-normal'             // 普通
+  if (index === 0) return 'rank-1' 
+  if (index === 1) return 'rank-2' 
+  if (index === 2) return 'rank-3' 
+  return 'rank-normal'             
 }
 
-// 2. 等级方框颜色逻辑 (你可以根据需求修改这里的数字门槛)
 const getLevelClass = (grade) => {
   if (grade === 1) return 'level-l1'    
   if (grade === 2) return 'level-l2'  
@@ -143,7 +152,6 @@ const getLevelClass = (grade) => {
   return 'level-l5'
 }
 
-// 3. 活跃度颜色
 const getActivityColor = (val) => {
   if (!val) return '#dcdfe6'
   if (val >= 80) return '#67C23A'
@@ -292,33 +300,73 @@ onMounted(() => {
 
 /* 📱 手机端样式微调 */
 @media (max-width: 768px) {
+  /* 去除容器内边距，实现无边框效果 */
   .leaderboard-container {
-    padding: 15px 5px; /* 减少容器边距 */
+    padding: 0; 
+    max-width: 100%;
+  }
+
+  /* 去除卡片的边框和阴影，让表格贴边 */
+  .box-card {
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
   }
   
   .header {
-    margin-bottom: 20px;
+    margin: 20px 0 10px 0; /* 调整头部间距 */
   }
   
   .title {
     font-size: 24px; /* 标题改小 */
   }
 
+  /* 这种超紧凑模式下，分数需要很小 */
   .elo-text {
-    font-size: 15px; /* 分数改小 */
+    font-size: 13px; 
   }
 
   /* 调整头像在手机上的右边距 */
   .avatar {
-    margin-right: 8px;
+    margin-right: 6px;
   }
 
+  /* 名字字体 */
   .main-name {
-    font-size: 14px;
+    font-size: 13px;
+    line-height: 1.2;
+  }
+
+  /* 等级盒子缩小 */
+  .level-box {
+    width: 18px;
+    height: 18px;
+    line-height: 18px;
+    font-size: 12px;
   }
   
-  .sub-name {
-    font-size: 12px;
+  /* === 🔥 重写表头样式，解决文字显示不全问题 === */
+  
+  /* 强制减小表头单元格 padding */
+  :deep(.el-table__header-wrapper th .cell) {
+    padding: 0 1px !important;  /* 左右几乎不留缝隙 */
+    font-size: 11px !important; /* 字体缩小 */
+    line-height: 1.2;
+    display: flex;              /* 使用 Flex 布局让文字和图标挤在一起 */
+    justify-content: center;
+    align-items: center;
+    font-weight: 600;
+  }
+
+  /* 缩小排序小箭头的占位宽度 */
+  :deep(.el-table .caret-wrapper) {
+    width: 11px !important;
+    margin-left: 0px !important; 
+  }
+  
+  /* 调整排序小箭头的形状大小 */
+  :deep(.el-table .sort-caret) {
+    border-width: 4px !important;
   }
 }
 
