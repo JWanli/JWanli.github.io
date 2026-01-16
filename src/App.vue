@@ -138,6 +138,33 @@ html, body {
   overflow-x: hidden; 
 }
 
+/* === 📱 移动端适配 CSS === */
+@media (max-width: 768px) {
+  /* 减小内边距，让内容更宽 */
+  .main-box {
+    padding: 10px;
+  }
+  
+  /* 紧凑导航栏 */
+  .header-box .el-menu-item {
+    padding: 0 8px !important; /* 缩小菜单项间距 */
+    font-size: 14px;
+  }
+  
+  /* 隐藏或缩小 LOGO 文字 (可选) */
+  .header-box .el-menu-item span[style*="font-weight: bold;"] {
+    display: none; /* 手机上只显示 Logo 图标，隐藏"陆合枪汇"文字以节省空间 */
+  }
+  .header-box .el-menu-item span[style*="font-size: 20px"] {
+    margin-right: 0 !important; /* 移除 Logo 图标右侧间距 */
+  }
+  
+  /* 调整 Toggle 开关位置 */
+  .theme-switch-box {
+    margin-left: 5px;
+  }
+}
+
 /* Footer 底部栏 */
 .footer-box {
   text-align: center;

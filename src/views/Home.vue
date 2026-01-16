@@ -25,6 +25,22 @@ import logoImage from '../assets/liuhelogo.png'
   padding: 40px 20px;
 }
 
+/* 📱 移动端：减少内边距 */
+@media (max-width: 768px) {
+  .home-content {
+    padding: 20px 10px;
+  }
+  
+  .my-logo {
+    width: 100px;
+    height: 100px;
+  }
+  
+  .intro-box {
+    max-width: 100%; /* 占满宽度 */
+  }
+}
+
 .my-logo {
   width: 120px;
   height: 120px;

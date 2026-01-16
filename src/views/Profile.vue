@@ -15,9 +15,14 @@
           <div class="header-info">
             <div class="name-row">
               <h1 class="name">{{ player.name }}</h1>
-              <el-tag v-if="player.grade > 0" type="warning" effect="dark" round>
-                Lv.{{ player.grade }} 级
-              </el-tag>
+              <!-- 替换原有的 el-tag -->
+              <div 
+                v-if="player.grade > 0" 
+                class="level-box" 
+                :class="getLevelClass(player.grade)"
+              >
+                {{ player.grade }}
+              </div>
             </div>
             
             <p v-if="player.nick_name" class="nickname">@{{ player.nick_name }}</p>
@@ -146,6 +151,16 @@ const hasAchievements = computed(() => {
   return (champion?.length || 0) + (runner_up?.length || 0) + (top4?.length || 0) + (top8?.length || 0) > 0
 })
 
+// === 新增：等级颜色逻辑 ===
+const getLevelClass = (grade) => {
+  if (grade === 1) return 'level-l1'    
+  if (grade === 2) return 'level-l2'  
+  if (grade === 3) return 'level-l3'    
+  if (grade === 4) return 'level-l4'    
+  if (grade === 5) return 'level-l5'
+  return 'level-l5'
+}
+
 const fetchPlayerDetail = async () => {
   const playerId = route.params.id
   loading.value = true
@@ -268,6 +283,25 @@ onMounted(() => {
 .label { font-size: 13px; color: #909399; }
 .team-tag { border-radius: 4px; }
 
+ /* === 新增：等级方框样式 === */
+.level-box {
+  display: inline-block;
+  width: 24px;   
+  height: 24px;  
+  line-height: 24px; 
+  font-size: 14px;
+  font-weight: 700;
+  border-radius: 2px; 
+  text-align: center;
+  color: #fff;
+  margin-left: 8px; /* 与名字保持一点距离 */
+}
+.level-l5   { background: #dcdfe6; }
+.level-l4   { background: #94c5b4; }
+.level-l3   { background: #6d9cc1; }
+.level-l2   { background: #9b8dca; }
+.level-l1   { background: #a46f63; }
+
 /* 右侧 Elo 大数字 */
 .elo-box {
   text-align: center;
@@ -302,8 +336,26 @@ onMounted(() => {
 
 /* 移动端适配 */
 @media (max-width: 768px) {
+  .page-container {
+    padding: 10px; /* 减少页面边距 */
+  }
+
+  .header-card {
+    padding: 15px; /* 减少卡片内边距 */
+  }
+
   .header-inner { flex-direction: column; text-align: center; }
-  .elo-box { border-left: none; padding-left: 0; margin-top: 20px; }
+  
+  /* 在手机上，Elo 信息盒子上移加分割线 */
+  .elo-box { 
+    border-left: none; 
+    padding-left: 0; 
+    margin-top: 15px; 
+    padding-top: 15px;
+    border-top: 1px dashed #eee; /* 改为上边框分割 */
+    width: 100%;
+  }
+
   .main-layout { flex-direction: column; }
 }
 

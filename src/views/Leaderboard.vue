@@ -15,7 +15,8 @@
         :default-sort="{ prop: 'current_elo', order: 'descending' }"
       >
         
-        <el-table-column type="index" label="排名" width="80" align="center">
+        <!-- 调整排名列宽度，手机上更窄 -->
+        <el-table-column type="index" label="排名" :width="isMobile ? 50 : 80" align="center">
           <template #default="scope">
             <div class="rank-badge" :class="getRankClass(scope.$index)">
               {{ scope.$index + 1 }}
@@ -23,22 +24,24 @@
           </template>
         </el-table-column>
 
-        <el-table-column label="选手" min-width="180">
+        <el-table-column label="选手" min-width="140">
           <template #default="scope">
             <div class="player-cell" @click="goToProfile(scope.row.id)">
-              <el-avatar :size="44" :src="scope.row.avatar_url" class="avatar">
+              <el-avatar :size="isMobile ? 36 : 44" :src="scope.row.avatar_url" class="avatar">
                 {{ scope.row.name.charAt(0) }}
               </el-avatar>
               
               <div class="name-info">
                 <span class="main-name">{{ scope.row.name }}</span>
+                <!-- 手机上名字太长可以考虑换行，这里暂时保持横向 -->
                 <span v-if="scope.row.nick_name" class="sub-name">{{ scope.row.nick_name }}</span>
               </div>
             </div>
           </template>
         </el-table-column>
 
-        <el-table-column label="等级" width="100" align="center">
+        <!-- 📱 手机端隐藏：等级 -->
+        <el-table-column v-if="!isMobile" label="等级" width="100" align="center">
           <template #default="scope">
             <div 
               v-if="scope.row.grade > 0"
@@ -51,19 +54,21 @@
           </template>
         </el-table-column>
 
-        <el-table-column prop="region" label="地区" width="120" align="center">
+        <!-- 📱 手机端隐藏：地区 -->
+        <el-table-column v-if="!isMobile" prop="region" label="地区" width="120" align="center">
           <template #default="scope">
             <span class="region-text">{{ scope.row.region || '-' }}</span>
           </template>
         </el-table-column>
 
-        <el-table-column prop="current_elo" label="等级分" width="140" sortable align="center">
+        <el-table-column prop="current_elo" label="分数" :width="isMobile ? 80 : 140" sortable align="center">
           <template #default="scope">
             <span class="elo-text">{{ scope.row.current_elo }}</span>
           </template>
         </el-table-column>
 
-        <el-table-column prop="activity" label="活跃度" width="140" sortable align="center">
+        <!-- 📱 手机端隐藏：活跃度 -->
+        <el-table-column v-if="!isMobile" prop="activity" label="活跃度" width="140" sortable align="center">
           <template #default="scope">
             <div class="activity-cell">
               <el-progress 
@@ -84,13 +89,18 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue' // 引入 computed
 import { useRouter } from 'vue-router'
 import { supabase } from '../supabase'
+import { useWindowSize } from '@vueuse/core' // 引入窗口尺寸检测
 
 const router = useRouter()
 const loading = ref(true)
 const tableData = ref([])
+
+// 📱 响应式检测移动端
+const { width } = useWindowSize()
+const isMobile = computed(() => width.value < 768) // 小于768px视为移动端
 
 const fetchData = async () => {
   loading.value = true
@@ -224,9 +234,11 @@ onMounted(() => {
 }
 .name-info {
   display: flex;
-  flex-direction: row; /* 改为横向排列 */
-  align-items: baseline; /* 基线对齐，保证文字底部平齐 */
-  gap: 8px; /* 名字和昵称之间的间距 */
+  flex-direction: row; 
+  align-items: baseline; 
+  gap: 8px;
+  /* 手机端防止溢出 */
+  flex-wrap: wrap; 
 }
 .main-name {
   font-weight: 700;
@@ -270,12 +282,44 @@ onMounted(() => {
 
 /* === Elo 分数 (重点优化) === */
 .elo-text {
-  font-family: "Roboto Mono", "Menlo", monospace; /* 数字专用字体 */
+  font-family: "Roboto Mono", "Menlo", monospace; 
   font-weight: 700;
   color: #2c3e50;
   font-size: 17px;
   letter-spacing: -0.5px;
   transition: color 0.3s;
+}
+
+/* 📱 手机端样式微调 */
+@media (max-width: 768px) {
+  .leaderboard-container {
+    padding: 15px 5px; /* 减少容器边距 */
+  }
+  
+  .header {
+    margin-bottom: 20px;
+  }
+  
+  .title {
+    font-size: 24px; /* 标题改小 */
+  }
+
+  .elo-text {
+    font-size: 15px; /* 分数改小 */
+  }
+
+  /* 调整头像在手机上的右边距 */
+  .avatar {
+    margin-right: 8px;
+  }
+
+  .main-name {
+    font-size: 14px;
+  }
+  
+  .sub-name {
+    font-size: 12px;
+  }
 }
 
 /* === 活跃度 === */
