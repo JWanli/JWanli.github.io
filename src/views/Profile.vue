@@ -76,7 +76,8 @@
               </div>
             </template>
             
-            <div v-if="hasAchievements" class="achievements-list">
+            <!-- 添加 scroll-container 容器用于控制滚动 -->
+            <div v-if="hasAchievements" class="achievements-scroll-container">
               <div v-if="achievements.champion?.length" class="achieve-group">
                 <div class="achieve-title gold">🥇 冠军</div>
                 <div v-for="(item, i) in achievements.champion" :key="i" class="achieve-item">
@@ -91,8 +92,16 @@
                 </div>
               </div>
 
+              <!-- 新增：季军展示块 -->
+              <div v-if="achievements.third_place?.length" class="achieve-group">
+                <div class="achieve-title bronze">🥉 季军</div>
+                <div v-for="(item, i) in achievements.third_place" :key="i" class="achieve-item">
+                  {{ item }}
+                </div>
+              </div>
+
               <div v-if="achievements.top4?.length" class="achieve-group">
-                <div class="achieve-title bronze">🥉 四强</div>
+                <div class="achieve-title semi">🏅 四强</div>
                 <div v-for="(item, i) in achievements.top4" :key="i" class="achieve-item">
                   {{ item }}
                 </div>
@@ -147,8 +156,13 @@ const chartOption = ref({})
 // 判断是否有荣誉数据
 const hasAchievements = computed(() => {
   if (!achievements.value) return false
-  const { champion, runner_up, top4, top8 } = achievements.value
-  return (champion?.length || 0) + (runner_up?.length || 0) + (top4?.length || 0) + (top8?.length || 0) > 0
+  // 增加 third_place (季军) 的判断
+  const { champion, runner_up, third_place, top4, top8 } = achievements.value
+  return (champion?.length || 0) + 
+         (runner_up?.length || 0) + 
+         (third_place?.length || 0) + 
+         (top4?.length || 0) + 
+         (top8?.length || 0) > 0
 })
 
 // === 新增：等级颜色逻辑 ===
@@ -324,15 +338,51 @@ onMounted(() => {
 
 .chart-container { height: 350px; width: 100%; }
 
-/* 荣誉列表 */
+/* === 修改：荣誉列表样式优化 === */
+/* 增加滚动容器样式 */
+.achievements-scroll-container {
+  max-height: 400px; /* 设置最大高度，超过此高度出现滚动条 */
+  overflow-y: auto;  /* 允许垂直滚动 */
+  padding-right: 5px; /* 防止滚动条遮挡文字 */
+}
+
+/* 美化滚动条 (Webkit浏览器) */
+.achievements-scroll-container::-webkit-scrollbar {
+  width: 6px;
+}
+.achievements-scroll-container::-webkit-scrollbar-thumb {
+  background-color: #dcdfe6;
+  border-radius: 3px;
+}
+.achievements-scroll-container::-webkit-scrollbar-track {
+  background-color: transparent;
+}
+
 .achieve-group { margin-bottom: 15px; }
-.achieve-title { font-weight: bold; font-size: 14px; margin-bottom: 5px; padding-bottom: 5px; border-bottom: 1px dashed #eee; transition: border-color 0.3s; }
-.achieve-title.gold { color: #D4AF37; }
-.achieve-title.silver { color: #A8A9AD; }
-.achieve-title.bronze { color: #CD7F32; }
+.achieve-title { font-weight: bold; font-size: 14px; margin-bottom: 8px; padding-bottom: 5px; border-bottom: 1px dashed #eee; transition: border-color 0.3s; position: sticky; top: 0; background: #fff; z-index: 1; opacity: 0.95; }
+/* 深色模式下 title 背景需适配 */
+html.dark .achieve-title { background: #1d1e1f; }
+
+.achieve-title.gold { color: #D4AF37; border-bottom: 2px solid #D4AF37; }
+.achieve-title.silver { color: #A8A9AD; border-bottom: 2px solid #A8A9AD; }
+.achieve-title.bronze { color: #CD7F32; border-bottom: 2px solid #CD7F32; }
+.achieve-title.semi { color: #6d9cc1; } /* 四强颜色区分 */
 .achieve-title.normal { color: #606266; }
 
-.achieve-item { font-size: 13px; color: #606266; line-height: 1.6; padding-left: 5px; transition: color 0.3s; }
+.achieve-item { 
+  font-size: 13px; 
+  color: #606266; 
+  line-height: 1.6; 
+  padding: 2px 0 2px 5px; 
+  transition: color 0.3s; 
+  border-left: 2px solid transparent; /* 增加一点视觉引导 */
+}
+.achieve-item:hover {
+  background-color: #f5f7fa;
+  border-radius: 2px;
+  border-left-color: #409EFF;
+}
+html.dark .achieve-item:hover { background-color: #2b2b2b; }
 
 /* 移动端适配 */
 @media (max-width: 768px) {
