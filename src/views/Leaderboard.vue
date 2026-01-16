@@ -15,6 +15,7 @@
         :size="isMobile ? 'small' : 'default'"
         :default-sort="{ prop: 'current_elo', order: 'descending' }"
         class="custom-table"
+        @sort-change="handleSortChange"
       >
         
         <!-- 1. 排名 -->
@@ -73,7 +74,7 @@
         </el-table-column>
 
         <!-- 6. 活跃度：改为"活跃"，宽度微增 -->
-        <el-table-column prop="activity" label="活跃" :width="isMobile ? 45 : 140" sortable align="center">
+        <el-table-column prop="activity" label="活跃" :width="isMobile ? 45 : 140" sortable="custom" align="center">
           <template #default="scope">
             <!-- 电脑端：进度条 -->
             <div v-if="!isMobile" class="activity-cell">
@@ -114,6 +115,25 @@ const tableData = ref([])
 
 const { width } = useWindowSize()
 const isMobile = computed(() => width.value < 768) 
+
+// 处理表格排序
+const handleSortChange = ({ prop, order }) => {
+  if (prop === 'activity') {
+    tableData.value.sort((a, b) => {
+      const actA = a.activity || 0
+      const actB = b.activity || 0
+      
+      // 如果活跃度相同，则始终按 ELO 分数降序排列（分数高的在前）
+      if (actA === actB) {
+        return b.current_elo - a.current_elo
+      }
+      
+      // 否则按活跃度排序
+      // ascending: 升序 (小 -> 大)，descending: 降序 (大 -> 小)
+      return order === 'ascending' ? actA - actB : actB - actA
+    })
+  }
+}
 
 const fetchData = async () => {
   loading.value = true
