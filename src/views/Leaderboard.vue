@@ -19,7 +19,7 @@
       >
         
         <!-- 1. 排名 -->
-        <el-table-column type="index" label="排名" :width="isMobile ? 38 : 80" align="center">
+        <el-table-column type="index" label="排名" :width="isMobile ? 38 : 70" align="center">
           <template #default="scope">
             <div class="rank-badge" :class="getRankClass(scope.$index)">
               {{ scope.$index + 1 }}
@@ -37,14 +37,15 @@
               
               <div class="name-info">
                 <span class="main-name">{{ scope.row.name }}</span>
-                <span v-if="!isMobile && scope.row.nick_name" class="sub-name">{{ scope.row.nick_name }}</span>
+                <!-- 优化：在平板竖屏模式下(isTablet)隐藏昵称，防止名字挤压换行 -->
+                <span v-if="!isMobile && !isTablet && scope.row.nick_name" class="sub-name">{{ scope.row.nick_name }}</span>
               </div>
             </div>
           </template>
         </el-table-column>
 
-        <!-- 3. 等级：去除 label 文字 -->
-        <el-table-column label="" :width="isMobile ? 30 : 100" align="center">
+        <!-- 3. 等级：PC端宽度缩小到 70 (原100) -->
+        <el-table-column label="" :width="isMobile ? 30 : 70" align="center">
           <template #default="scope">
             <div 
               v-if="scope.row.grade > 0"
@@ -57,8 +58,8 @@
           </template>
         </el-table-column>
 
-        <!-- 4. 地区：略微缩小移动端宽度 -->
-        <el-table-column prop="region" label="地区" :width="isMobile ? 50 : 120" align="center" show-overflow-tooltip>
+        <!-- 4. 地区：PC端宽度缩小到 100 (原120) -->
+        <el-table-column prop="region" label="地区" :width="isMobile ? 50 : 100" align="center" show-overflow-tooltip>
           <template #default="scope">
             <span class="region-text" :style="{ fontSize: isMobile ? '12px' : '15px' }">
               {{ scope.row.region || '-' }}
@@ -66,17 +67,17 @@
           </template>
         </el-table-column>
 
-        <!-- 5. 分数：宽度微增，确保"分数"二字不换行 -->
-        <el-table-column prop="current_elo" label="分数" :width="isMobile ? 55 : 140" sortable align="center">
+        <!-- 5. 分数：PC端宽度缩小到 100 (原140) -->
+        <el-table-column prop="current_elo" label="分数" :width="isMobile ? 55 : 100" sortable align="center">
           <template #default="scope">
             <span class="elo-text">{{ scope.row.current_elo }}</span>
           </template>
         </el-table-column>
 
-        <!-- 6. 活跃度：改为"活跃"，宽度微增 -->
-        <el-table-column prop="activity" label="活跃" :width="isMobile ? 45 : 140" sortable="custom" align="center">
+        <!-- 6. 活跃度：PC端宽度缩小到 120 (原140) -->
+        <el-table-column prop="activity" label="活跃" :width="isMobile ? 45 : 120" sortable="custom" align="center">
           <template #default="scope">
-            <!-- 电脑端：进度条 -->
+            <!-- 电脑/iPad端：进度条 -->
             <div v-if="!isMobile" class="activity-cell">
               <el-progress 
                 :percentage="scope.row.activity || 0" 
@@ -114,7 +115,14 @@ const loading = ref(true)
 const tableData = ref([])
 
 const { width } = useWindowSize()
+
+// === 核心修改逻辑 ===
+// 1. isMobile: 严格限制在 < 768px (手机)，这样 iPad 会进入桌面排版
 const isMobile = computed(() => width.value < 768) 
+
+// 2. isTablet: 定义 768px ~ 1100px 为平板或小屏笔记本区间
+// 在这个区间内，我们隐藏次要信息(如昵称)，保证主要信息不换行
+const isTablet = computed(() => width.value >= 768 && width.value < 1100)
 
 // 处理表格排序
 const handleSortChange = ({ prop, order }) => {
@@ -211,13 +219,11 @@ onMounted(() => {
   font-weight: 500;
   transition: color 0.3s;
 }
-
-/* === 排名徽章 (这里修改不同Rank的配色) === */
 .rank-badge {
   width: 28px;
   height: 28px;
   line-height: 28px;
-  border-radius: 6px; /* 方圆角，更现代 */
+  border-radius: 6px; 
   margin: 0 auto;
   font-weight: 800;
   font-size: 14px;
@@ -273,6 +279,8 @@ onMounted(() => {
   font-size: 16px;
   color: #2c3e50;
   transition: color 0.3s;
+  /* 新增：强制不换行 */
+  white-space: nowrap;
 }
 .sub-name {
   font-size: 16px;
@@ -320,25 +328,37 @@ onMounted(() => {
 
 /* 📱 手机端样式微调 */
 @media (max-width: 768px) {
-  /* 去除容器内边距，实现无边框效果 */
+  /* 1. 使用负 margin 抵消 App.vue 中 main-box 的 20px padding */
   .leaderboard-container {
-    padding: 0; 
-    max-width: 100%;
+    margin-left: -20px !important;  /* 👈 关键：向左拉出 20px */
+    width: calc(100% + 40px) !important; /* 👈 关键：补回总共 40px 的宽度 */
+    max-width: none !important;
+    padding: 0 !important; /* 自身不留 padding */
+    box-sizing: border-box;
   }
 
-  /* 去除卡片的边框和阴影，让表格贴边 */
-  .box-card {
-    border: none !important;
-    border-radius: 0 !important;
-    box-shadow: none !important;
-  }
-  
+  /* 2. 标题也跟着拉宽了，稍微给点内边距 */
   .header {
-    margin: 20px 0 10px 0; /* 调整头部间距 */
+    margin: 15px 0 10px 0;
+    padding: 0 16px;
   }
-  
-  .title {
-    font-size: 24px; /* 标题改小 */
+  .title { font-size: 22px; }
+
+  /* 3. 卡片设置：现在容器已经撑满屏幕了 */
+  .box-card {
+    /* 这里设置你想要的“极窄缝隙” */
+    margin: 0 6px !important; /* 👈 左右留 6px 间隙 */
+    width: calc(100% - 12px) !important; /* 宽度相应减去 12px */
+    
+    border: 1px solid var(--el-border-color-light) !important;
+    border-radius: 8px !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04) !important;
+    overflow: hidden;
+  }
+
+  /* 4. 卡片内容去内边距 */
+  :deep(.el-card__body) {
+    padding: 0 6px !important;
   }
 
   /* 这种超紧凑模式下，分数需要很小 */
@@ -355,6 +375,13 @@ onMounted(() => {
   .main-name {
     font-size: 13px;
     line-height: 1.2;
+    /* 确保手机端也不换行 */
+    white-space: nowrap;
+  }
+
+  /* 强制压缩表格单元格的左右 padding，挤出空间给名字 */
+  :deep(.el-table .cell) {
+    padding: 0 2px !important;
   }
 
   /* 等级盒子缩小 */

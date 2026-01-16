@@ -3,7 +3,9 @@
     
     <img :src="logoImage" alt="Logo" class="my-logo" />
 
-    <h1>👋 欢迎来到 陆合枪汇</h1>
+    <!-- 修改：包裹“陆合枪汇”并添加类名 -->
+    <h1>👋 欢迎来到 <span class="brand-name">陆合枪汇</span></h1>
+    
     <p class="subtitle">这里记录大枪等级分、竞技赛事活动以及我的个人思考。</p>
     
     <div class="intro-box">
@@ -75,5 +77,17 @@ import logoImage from '../assets/liuhelogo.png'
 .intro-box p {
   color: var(--el-text-color-regular);
   margin-bottom: 0;
+}
+
+/* === 新增：品牌名称手机端换行处理 === */
+.brand-name {
+  display: inline; /* PC端默认行内显示 */
+}
+
+@media (max-width: 768px) {
+  .brand-name {
+    display: block; /* 手机端变为块级元素，强制换行 */
+    margin-top: 4px; /* 增加一点行间距，更美观 */
+  }
 }
 </style>

@@ -1,7 +1,15 @@
 <template>
   <el-container class="layout-container">
     
-    <el-header class="header-box">
+    <el-header class="header-box glass-header">
+      
+      <!-- 1. 左侧 Logo (独立区域，点击回主页) -->
+      <div class="logo-wrapper absolute-left" @click="$router.push('/')">
+        <span class="logo-emoji">🦾</span>
+        <span class="logo-text">陆合枪汇</span>
+      </div>
+
+      <!-- 2. 中间 导航菜单 -->
       <el-menu
         :default-active="activeIndex"
         mode="horizontal"
@@ -9,32 +17,31 @@
         router
         class="custom-menu"
       >
-        <!-- 添加 class="logo-menu-item" 以便 CSS 控制 -->
-        <el-menu-item index="/" class="logo-menu-item">
-          <span style="font-size: 20px; font-weight: bold; margin-right: 10px;">🦾</span>
-          <span style="font-weight: bold;">陆合枪汇</span>
-        </el-menu-item>
-        <div class="flex-grow" /> 
-        <el-menu-item index="/">主页</el-menu-item>
-        <el-menu-item index="/rank">排行榜</el-menu-item>
-        <el-menu-item index="/activity">活动记录</el-menu-item>
+        <div class="center-nav">
+          <el-menu-item index="/">主页</el-menu-item>
+          <el-menu-item index="/rank">排行榜</el-menu-item>
+          <el-menu-item index="/activity">活动</el-menu-item>
+        </div>
+      </el-menu>
 
-        <div class="theme-switch-box">
+      <!-- 3. 右侧 开关 (独立区域) -->
+      <div class="right-actions absolute-right">
+        <div class="theme-switch-wrapper">
           <el-switch
             v-model="isDark"
             inline-prompt
             :active-icon="Moon"
             :inactive-icon="Sunny"
-            style="--el-switch-on-color: #4C4D4F; --el-switch-off-color: #dcdfe6"
+            class="premium-switch"
           />
         </div>
+      </div>
 
-      </el-menu>
     </el-header>
 
     <el-main class="main-box">
       <router-view v-slot="{ Component }">
-        <transition name="el-fade-in-linear">
+        <transition name="slide-fade" mode="out-in">
           <component :is="Component" />
         </transition>
       </router-view>
@@ -42,12 +49,14 @@
 
     <el-footer class="footer-box">
       <p>
-        © 2026 JWanli Engineering. Powered by 
-        <el-link type="primary" href="https://vuejs.org/" target="_blank">Vue 3</el-link> 
+        © 2026 JWanli Engineering.
+        <br class="mobile-break"> 
+        Powered by 
+        <el-link type="primary" :underline="false" href="https://vuejs.org/" target="_blank">Vue 3</el-link> 
         & 
-        <el-link type="success" href="https://element-plus.org/" target="_blank">Element Plus</el-link>
+        <el-link type="success" :underline="false" href="https://element-plus.org/" target="_blank">Element Plus</el-link>
       </p>
-      <p style="font-size: 12px; color: #999;">
+      <p class="footer-sub">
         本站源码托管于 GitHub Pages | 传统武术
       </p>
     </el-footer>
@@ -57,7 +66,7 @@
 
 <script setup>
 import { ref, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useDark } from '@vueuse/core'
 
 import { Moon, Sunny } from '@element-plus/icons-vue'
@@ -73,7 +82,15 @@ watch(() => route.path, (newPath) => {
 </script>
 
 <style>
-/* 1. 全局重置 */
+/* === 1. 全局配置 === */
+:root {
+  --header-height: 64px;
+  --glass-bg-light: rgba(255, 255, 255, 0.9); /* 稍微增加不透明度，提升质感 */
+  --glass-bg-dark: rgba(28, 28, 30, 0.9);
+  --border-light: rgba(0, 0, 0, 0.05);
+  --border-dark: rgba(255, 255, 255, 0.1);
+}
+
 * {
   box-sizing: border-box;
 }
@@ -82,113 +99,219 @@ html, body {
   margin: 0;
   padding: 0;
   width: 100%;
-  background-color: var(--el-bg-color-page); 
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Helvetica, sans-serif;
+  background-color: var(--el-bg-color-page);
   color: var(--el-text-color-primary);
-  /* 防止不同浏览器滚动条宽度不一致导致的抖动 */
-  overflow-y: scroll; 
+  overflow-y: scroll;
 }
 
-#app {
+#app, .layout-container {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
 }
 
-.layout-container {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-}
-
-/* Header */
-.header-box {
+/* === 2. Header === */
+.header-box.glass-header {
   padding: 0;
-  /* 背景色改用 var(--el-bg-color)，这样深色模式下它和 body 颜色一致，
-     看起来就像没有缝隙了 
-  */
-  background-color: var(--el-bg-color);
-  
-  /* 如果你不想要标题栏下面那条灰色的线（看起来像缝隙），把下面这行删掉 */
-  /* border-bottom: 1px solid var(--el-border-color); */
-  
-  position: relative;
-  z-index: 100;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  height: var(--header-height);
+  background-color: var(--glass-bg-light) !important;
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-bottom: 1px solid var(--border-light);
+  /* 确保 header 是相对定位容器，给子元素的 absolute 提供参照 */
+  position: sticky; 
+  display: flex; /* 主要是为了让 absolute 的子元素相对于它定位 */
+  align-items: center;
+  justify-content: center;
 }
 
-/* 这里的样式是为了让 Menu 背景透明，直接透出 header 的颜色 */
+html.dark .header-box.glass-header {
+  background-color: var(--glass-bg-dark) !important;
+  border-bottom: 1px solid var(--border-dark);
+}
+
+/* 中间菜单 */
 .custom-menu {
   border-bottom: none !important;
   background-color: transparent !important;
-}
-
-.theme-switch-box {
+  height: 100%;
+  /* menu 不需要 width 100%，它只需要包裹 center-nav */
+  width: auto; 
   display: flex;
   align-items: center;
-  margin-left: 20px;
-  height: 60px; /* 和 menu 高度一致 */
 }
 
-/* Main 内容区 */
+.center-nav {
+  display: flex;
+  align-items: center;
+  height: 100%;
+}
+
+/* 绝对定位区域 */
+.absolute-left {
+  position: absolute;
+  left: 24px;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  z-index: 10;
+}
+
+.absolute-right {
+  position: absolute;
+  right: 24px;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  z-index: 10;
+}
+
+/* 导航项样式 (恢复浅蓝色选中态) */
+.el-menu--horizontal > .center-nav > .el-menu-item {
+  border-bottom: none !important;
+  color: var(--el-text-color-regular);
+  font-weight: 500;
+  font-size: 15px;
+  height: 38px !important; 
+  line-height: 38px !important;
+  margin: 0 4px;
+  border-radius: 12px; /* 稍微方一点的圆角，更现代 */
+  transition: all 0.2s ease-in-out;
+  padding: 0 20px !important;
+}
+
+.el-menu--horizontal > .center-nav > .el-menu-item:hover {
+  background-color: rgba(0, 0, 0, 0.04) !important;
+  color: var(--el-color-primary) !important;
+}
+html.dark .el-menu--horizontal > .center-nav > .el-menu-item:hover {
+  background-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* 关键：恢复浅蓝色高亮 */
+.el-menu--horizontal > .center-nav > .el-menu-item.is-active {
+  background-color: var(--el-color-primary-light-9) !important;
+  color: var(--el-color-primary) !important;
+  font-weight: 600;
+}
+html.dark .el-menu--horizontal > .center-nav > .el-menu-item.is-active {
+  background-color: rgba(64, 158, 255, 0.2) !important;
+  color: #409eff !important;
+}
+
+/* Logo 样式 */
+.logo-wrapper {
+  cursor: pointer;
+  transition: opacity 0.2s;
+  user-select: none;
+}
+.logo-wrapper:hover {
+  opacity: 0.7;
+}
+
+.logo-emoji {
+  font-size: 26px;
+  margin-right: 8px;
+}
+.logo-text {
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  color: var(--el-text-color-primary);
+}
+
+/* 开关样式 */
+.premium-switch {
+  --el-switch-on-color: #333;
+  --el-switch-off-color: #e5e5ea;
+}
+
+/* === 3. 内容区与页脚 === */
 .main-box {
   flex-grow: 1; 
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 20px;
-  background-color: var(--el-bg-color-page);
-  overflow-x: hidden; 
+  padding: 40px 24px;
+  overflow-x: hidden;
 }
 
-/* === 📱 移动端适配 CSS === */
-@media (max-width: 768px) {
-  /* 隐藏左上角 LOGO 栏，节省空间 */
-  .logo-menu-item {
-    display: none !important;
-  }
-
-  /* 减小内边距，让内容更宽 */
-  .main-box {
-    padding: 0 !important; /* 排行榜需要去边框，这里直接设为0，由各页面自己控制内边距 */
-  }
-  
-  /* 紧凑导航栏 */
-  .header-box .el-menu-item {
-    padding: 0 8px !important; /* 缩小菜单项间距 */
-    font-size: 14px;
-  }
-  
-  /* 隐藏或缩小 LOGO 文字 (可选) */
-  .header-box .el-menu-item span[style*="font-weight: bold;"] {
-    display: none; /* 手机上只显示 Logo 图标，隐藏"陆合枪汇"文字以节省空间 */
-  }
-  .header-box .el-menu-item span[style*="font-size: 20px"] {
-    margin-right: 0 !important; /* 移除 Logo 图标右侧间距 */
-  }
-  
-  /* 调整 Toggle 开关位置 */
-  .theme-switch-box {
-    margin-left: 5px;
-  }
-}
-
-/* Footer 底部栏 */
 .footer-box {
   text-align: center;
-  /* 使用 overlay 颜色，稍微比背景深一点点 */
-  background-color: var(--el-bg-color-overlay);
-  color: var(--el-text-color-regular);
-  padding: 30px 20px; 
-  width: 100%;
-  /* 顶部留一条淡淡的线 */
-  border-top: 1px solid var(--el-border-color-light);
+  background-color: transparent;
+  border-top: 1px solid var(--border-light);
+  color: var(--el-text-color-secondary);
+  padding: 40px 20px;
+  font-size: 13px;
 }
+html.dark .footer-box { border-top: 1px solid var(--border-dark); }
+.mobile-break { display: none; }
 
-.footer-box p {
-  margin: 5px 0;
-  line-height: 1.5;
+/* === 页面切换动画 === */
+.slide-fade-enter-active, .slide-fade-leave-active {
+  transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
+.slide-fade-enter-from { opacity: 0; transform: scale(0.98) translateY(10px); }
+.slide-fade-leave-to { opacity: 0; }
 
-.flex-grow {
-  flex-grow: 1;
+/* === 📱 移动端适配 === */
+@media (max-width: 768px) {
+  .header-box.glass-header {
+    justify-content: space-between;
+    padding: 0 12px;
+  }
+  
+  /* 1. 左右两侧：取消绝对定位，设为固定宽度以保证中间绝对居中 */
+  .absolute-left, .absolute-right {
+    position: static !important; /* 关键：取消绝对定位，回归文档流 */
+    width: 60px;  /* 关键：设置相同的宽度，确保两边对称，从而让中间菜单视觉居中 */
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+  }
+
+  .absolute-left { justify-content: flex-start; } /* Logo 靠左 */
+  .absolute-right { justify-content: flex-end; } /* 开关 靠右 */
+  
+  /* 2. 中间菜单：Flex 自适应占据剩余空间 */
+  .custom-menu {
+    position: static;
+    transform: none;
+    flex: 1; /* 占据左右剩下的所有空间 */
+    justify-content: center;
+    margin: 0 4px;
+    width: 0; /* 防止 flex 子项溢出 */
+    padding: 0; 
+  }
+
+  /* 确保内部容器也是居中的 */
+  .center-nav {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* 3. 移动端 Logo 调整 */
+  .logo-text { display: none; }
+  .logo-emoji { font-size: 24px; margin-right: 0; }
+  
+  /* 4. 移动端导航项微调 */
+  .el-menu--horizontal > .center-nav > .el-menu-item {
+    font-size: 14px;
+    padding: 0 8px !important; /* 缩小内边距 */
+    height: 34px !important;
+    line-height: 34px !important;
+    margin: 0 1px;
+    border-radius: 8px;
+  }
+  
+  /* 5. 主内容区去边距 */
+  .main-box { padding: 20px 0px; }
+  .mobile-break { display: block; }
 }
 </style>
