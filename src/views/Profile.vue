@@ -16,7 +16,7 @@
             <div class="name-row">
               <h1 class="name">{{ player.name }}</h1>
               <el-tag v-if="player.grade > 0" type="warning" effect="dark" round>
-                Lv.{{ player.grade }} 级挂件
+                Lv.{{ player.grade }} 级
               </el-tag>
             </div>
             
@@ -246,6 +246,7 @@ onMounted(() => {
 .header-card {
   background: linear-gradient(135deg, #ffffff 0%, #f3f5f7 100%);
   border: none;
+  transition: background 0.3s;
 }
 .header-inner {
   display: flex;
@@ -260,9 +261,9 @@ onMounted(() => {
   align-items: center;
   gap: 10px;
 }
-.name { margin: 0; font-size: 28px; color: #303133; }
-.nickname { color: #909399; margin: 5px 0 10px; font-size: 14px; }
-.meta-row { display: flex; gap: 15px; margin-bottom: 10px; color: #606266; font-size: 14px; }
+.name { margin: 0; font-size: 28px; color: #303133; transition: color 0.3s; }
+.nickname { color: #909399; margin: 5px 0 10px; font-size: 14px; transition: color 0.3s; }
+.meta-row { display: flex; gap: 15px; margin-bottom: 10px; color: #606266; font-size: 14px; transition: color 0.3s; }
 .teams-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .label { font-size: 13px; color: #909399; }
 .team-tag { border-radius: 4px; }
@@ -272,10 +273,11 @@ onMounted(() => {
   text-align: center;
   padding-left: 30px;
   border-left: 1px solid #e4e7ed;
+  transition: border-color 0.3s;
 }
 .elo-label { font-size: 12px; color: #909399; text-transform: uppercase; letter-spacing: 1px; }
 .elo-number { font-size: 42px; font-weight: 800; color: #409EFF; line-height: 1.2; }
-.elo-max { font-size: 12px; color: #C0C4CC; }
+.elo-max { font-size: 12px; color: #C0C4CC; transition: color 0.3s; }
 
 /* 布局：左右栏 */
 .main-layout {
@@ -290,18 +292,64 @@ onMounted(() => {
 
 /* 荣誉列表 */
 .achieve-group { margin-bottom: 15px; }
-.achieve-title { font-weight: bold; font-size: 14px; margin-bottom: 5px; padding-bottom: 5px; border-bottom: 1px dashed #eee; }
+.achieve-title { font-weight: bold; font-size: 14px; margin-bottom: 5px; padding-bottom: 5px; border-bottom: 1px dashed #eee; transition: border-color 0.3s; }
 .achieve-title.gold { color: #D4AF37; }
 .achieve-title.silver { color: #A8A9AD; }
 .achieve-title.bronze { color: #CD7F32; }
 .achieve-title.normal { color: #606266; }
 
-.achieve-item { font-size: 13px; color: #606266; line-height: 1.6; padding-left: 5px; }
+.achieve-item { font-size: 13px; color: #606266; line-height: 1.6; padding-left: 5px; transition: color 0.3s; }
 
 /* 移动端适配 */
 @media (max-width: 768px) {
   .header-inner { flex-direction: column; text-align: center; }
   .elo-box { border-left: none; padding-left: 0; margin-top: 20px; }
   .main-layout { flex-direction: column; }
+}
+
+/* === 🌙 夜间模式适配 (Dark Mode) === */
+
+/* 顶部卡片背景 */
+html.dark .header-card {
+  background: linear-gradient(135deg, #1d1e1f 0%, #2b2b2b 100%);
+  border: 1px solid #363637; /* 深色边框 */
+}
+
+/* 文本颜色适配 */
+html.dark .name { color: #E5EAF3; }
+html.dark .nickname { color: #A3A6AD; }
+html.dark .meta-row { color: #A3A6AD; }
+html.dark .label { color: #A3A6AD; }
+
+/* 分隔线与装饰线 */
+html.dark .elo-box {
+  border-left-color: #4C4D4F;
+}
+html.dark .elo-max { color: #6C6E72; }
+
+/* 下方卡片背景与文本 */
+html.dark .box-card {
+  /* Element Plus 卡片通常会自动适配，但如果没有，强制深色背景 */
+  background-color: #1d1e1f;
+  border-color: #4C4D4F;
+  color: #E5EAF3;
+}
+
+html.dark .card-header span {
+  color: #E5EAF3;
+}
+
+/* 荣誉列表适配 */
+html.dark .achieve-title {
+  border-bottom-color: #4C4D4F;
+}
+html.dark .achieve-title.normal { color: #A3A6AD; }
+html.dark .achieve-item { color: #bbb; }
+html.dark .achieve-title.gold { color: #FFD700; /* 可以在深色下稍微提亮 */ }
+html.dark .achieve-title.silver { color: #C0C4CC; }
+
+/* 简介文字颜色 */
+html.dark .bio-card p {
+  color: #bbb !important; /* 修正内联样式的颜色 */
 }
 </style>

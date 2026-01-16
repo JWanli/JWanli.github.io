@@ -10,65 +10,70 @@
         v-loading="loading" 
         :data="tableData" 
         style="width: 100%" 
+        :row-style="{ height: '65px' }" 
         stripe
         :default-sort="{ prop: 'current_elo', order: 'descending' }"
       >
         
         <el-table-column type="index" label="排名" width="80" align="center">
           <template #default="scope">
-            <div class="rank-badge" :class="'rank-' + (scope.$index + 1)">
+            <div class="rank-badge" :class="getRankClass(scope.$index)">
               {{ scope.$index + 1 }}
             </div>
           </template>
         </el-table-column>
 
-        <el-table-column label="选手" min-width="200">
+        <el-table-column label="选手" min-width="180">
           <template #default="scope">
             <div class="player-cell" @click="goToProfile(scope.row.id)">
-              <el-avatar :size="40" :src="scope.row.avatar_url" class="avatar">
+              <el-avatar :size="44" :src="scope.row.avatar_url" class="avatar">
                 {{ scope.row.name.charAt(0) }}
               </el-avatar>
               
               <div class="name-info">
-                <div class="main-name">
-                  {{ scope.row.name }}
-                  <el-tag v-if="scope.row.grade > 0" size="small" type="warning" effect="dark" round style="margin-left: 5px; transform: scale(0.8);">
-                    Lv.{{ scope.row.grade }}
-                  </el-tag>
-                </div>
-                <div v-if="scope.row.nick_name" class="sub-name">
-                  @{{ scope.row.nick_name }}
-                </div>
+                <span class="main-name">{{ scope.row.name }}</span>
+                <span v-if="scope.row.nick_name" class="sub-name">{{ scope.row.nick_name }}</span>
               </div>
             </div>
           </template>
         </el-table-column>
 
-        <el-table-column prop="region" label="地区" width="120" align="center">
+        <el-table-column label="等级" width="100" align="center">
           <template #default="scope">
-            <el-tag v-if="scope.row.region" type="info" size="small" effect="plain">
-              {{ scope.row.region }}
-            </el-tag>
-            <span v-else>-</span>
+            <div 
+              v-if="scope.row.grade > 0"
+              class="level-box" 
+              :class="getLevelClass(scope.row.grade)"
+            >
+              {{ scope.row.grade }}
+            </div>
+            <span v-else class="no-level">-</span>
           </template>
         </el-table-column>
 
-        <el-table-column prop="current_elo" label="大枪等级分" width="150" sortable align="center">
+        <el-table-column prop="region" label="地区" width="120" align="center">
+          <template #default="scope">
+            <span class="region-text">{{ scope.row.region || '-' }}</span>
+          </template>
+        </el-table-column>
+
+        <el-table-column prop="current_elo" label="等级分" width="140" sortable align="center">
           <template #default="scope">
             <span class="elo-text">{{ scope.row.current_elo }}</span>
           </template>
         </el-table-column>
 
-        <el-table-column prop="activity" label="活跃度" width="150" sortable align="center">
+        <el-table-column prop="activity" label="活跃度" width="140" sortable align="center">
           <template #default="scope">
             <div class="activity-cell">
               <el-progress 
                 :percentage="scope.row.activity || 0" 
                 :color="getActivityColor(scope.row.activity)"
-                :stroke-width="8"
+                :stroke-width="6"
                 :show-text="false"
+                class="custom-progress"
               />
-              <span class="activity-text">{{ scope.row.activity || 0 }}%</span>
+              <span class="activity-num">{{ scope.row.activity || 0 }}%</span>
             </div>
           </template>
         </el-table-column>
@@ -87,11 +92,9 @@ const router = useRouter()
 const loading = ref(true)
 const tableData = ref([])
 
-// 获取数据
 const fetchData = async () => {
   loading.value = true
   try {
-    // 增加查询 nick_name, activity, grade
     const { data, error } = await supabase
       .from('players')
       .select('id, name, nick_name, region, current_elo, avatar_url, activity, grade')
@@ -106,17 +109,36 @@ const fetchData = async () => {
   }
 }
 
-// 跳转详情
 const goToProfile = (id) => {
   router.push(`/profile/${id}`)
 }
 
-// 活跃度颜色逻辑
+// === 样式逻辑控制 ===
+
+// 1. 排名颜色逻辑
+const getRankClass = (index) => {
+  if (index === 0) return 'rank-1' // 冠军
+  if (index === 1) return 'rank-2' // 亚军
+  if (index === 2) return 'rank-3' // 季军
+  return 'rank-normal'             // 普通
+}
+
+// 2. 等级方框颜色逻辑 (你可以根据需求修改这里的数字门槛)
+const getLevelClass = (grade) => {
+  if (grade === 1) return 'level-l1'    
+  if (grade === 2) return 'level-l2'  
+  if (grade === 3) return 'level-l3'    
+  if (grade === 4) return 'level-l4'    
+  if (grade === 5) return 'level-l5'
+  return 'level-l5'
+}
+
+// 3. 活跃度颜色
 const getActivityColor = (val) => {
-  if (!val) return '#909399'
-  if (val >= 80) return '#67C23A' // 绿色
-  if (val >= 50) return '#E6A23C' // 黄色
-  return '#F56C6C' // 红色
+  if (!val) return '#dcdfe6'
+  if (val >= 80) return '#67C23A'
+  if (val >= 50) return '#E6A23C'
+  return '#F56C6C'
 }
 
 onMounted(() => {
@@ -125,91 +147,193 @@ onMounted(() => {
 </script>
 
 <style scoped>
+/* 引入更加清晰的字体栈 */
 .leaderboard-container {
   max-width: 1000px;
   margin: 0 auto;
-  padding: 20px;
+  padding: 30px 20px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
+
 .header {
   text-align: center;
   margin-bottom: 30px;
 }
 .title {
-  font-size: 28px;
-  color: #2c3e50;
-  margin-bottom: 5px;
+  font-size: 32px;
+  color: #1a1a1a;
+  margin-bottom: 8px;
+  font-weight: 800; /* 加粗标题 */
+  letter-spacing: -0.5px;
+  transition: color 0.3s;
 }
 .subtitle {
-  color: #7f8c8d;
+  color: #888;
   font-size: 14px;
+  font-weight: 500;
+  transition: color 0.3s;
 }
 
-/* 排名徽章样式 */
+/* === 排名徽章 (这里修改不同Rank的配色) === */
 .rank-badge {
-  width: 24px;
-  height: 24px;
-  line-height: 24px;
-  border-radius: 50%;
-  background: #f0f2f5;
-  color: #606266;
+  width: 28px;
+  height: 28px;
+  line-height: 28px;
+  border-radius: 6px; /* 方圆角，更现代 */
   margin: 0 auto;
-  font-weight: bold;
-  font-size: 12px;
+  font-weight: 800;
+  font-size: 14px;
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
 }
-.rank-1 { background: #FFD700; color: #fff; box-shadow: 0 2px 4px rgba(255, 215, 0, 0.4); }
-.rank-2 { background: #C0C0C0; color: #fff; }
-.rank-3 { background: #CD7F32; color: #fff; }
 
-/* 选手列样式 */
+/* 🥇 冠军色 */
+.rank-1 {
+  background: linear-gradient(135deg, #FFD700 0%, #FDB931 100%);
+  text-shadow: 0 1px 1px rgba(0,0,0,0.2);
+  transform: scale(1.1); /* 冠军稍微大一点 */
+}
+/* 🥈 亚军色 */
+.rank-2 {
+  background: linear-gradient(135deg, #E0E0E0 0%, #BDBDBD 100%);
+  color: #555;
+}
+/* 🥉 季军色 */
+.rank-3 {
+  background: linear-gradient(135deg, #CD7F32 0%, #A0522D 100%);
+}
+/* 普通排名 */
+.rank-normal {
+  background: transparent;
+  color: #909399;
+  box-shadow: none;
+  font-weight: 600;
+}
+
+/* === 选手信息 === */
 .player-cell {
   display: flex;
   align-items: center;
   cursor: pointer;
-  transition: transform 0.2s;
-}
-.player-cell:hover {
-  transform: translateX(5px);
 }
 .avatar {
-  margin-right: 12px;
-  background-color: #409EFF;
-  flex-shrink: 0;
+  margin-right: 15px;
+  border: 2px solid #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  transition: border-color 0.3s;
 }
 .name-info {
   display: flex;
-  flex-direction: column;
-  justify-content: center;
+  flex-direction: row; /* 改为横向排列 */
+  align-items: baseline; /* 基线对齐，保证文字底部平齐 */
+  gap: 8px; /* 名字和昵称之间的间距 */
 }
 .main-name {
-  font-weight: bold;
-  font-size: 15px;
+  font-weight: 700;
+  font-size: 16px;
   color: #2c3e50;
-  display: flex;
-  align-items: center;
+  transition: color 0.3s;
 }
 .sub-name {
-  font-size: 12px;
-  color: #909399;
-  margin-top: 2px;
-}
-
-/* Elo 分数样式 */
-.elo-text {
-  font-family: 'Roboto Mono', monospace;
-  font-weight: bold;
-  color: #409EFF;
   font-size: 16px;
+  color: #909399;  /* 使用浅灰色区分 */
+  font-weight: 400;
+  transition: color 0.3s;
 }
 
-/* 活跃度样式 */
+/* === 等级方框 (这里改 Lv 方块的样式) === */
+.level-box {
+  display: inline-block;
+  width: 24px;   /* 固定宽度 */
+  height: 24px;  /* 固定高度 */
+  line-height: 24px; /* 垂直居中 */
+  font-size: 14px;
+  font-weight: 700;
+  border-radius: 2px; /* 极小的圆角，接近正方形 */
+  text-align: center;
+  color: #fff; /* 所有等级文字统一为白色 */
+}
+.level-l5   { background: #dcdfe6; }
+.level-l4   { background: #94c5b4; }
+.level-l3   { background: #6d9cc1; }
+.level-l2   { background: #9b8dca; }
+.level-l1   { background: #a46f63; }
+
+/* === 地区 === */
+/* 去掉背景胶囊样式，改为清晰的纯文本 */
+.region-text {
+  font-size: 15px;
+  color: #303133;
+  font-weight: 500;
+  transition: color 0.3s;
+}
+
+/* === Elo 分数 (重点优化) === */
+.elo-text {
+  font-family: "Roboto Mono", "Menlo", monospace; /* 数字专用字体 */
+  font-weight: 700;
+  color: #2c3e50;
+  font-size: 17px;
+  letter-spacing: -0.5px;
+  transition: color 0.3s;
+}
+
+/* === 活跃度 === */
 .activity-cell {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
-.activity-text {
+.custom-progress {
+  width: 60px;
+}
+.activity-num {
   font-size: 12px;
-  color: #606266;
-  min-width: 35px;
+  color: #909399;
+  font-family: monospace;
 }
+
+/* === 🌙 夜间模式适配 (Dark Mode) === */
+html.dark .title {
+  color: #E5EAF3; /* Element Plus Text Primary Dark */
+}
+
+html.dark .subtitle {
+  color: #A3A6AD; /* Element Plus Text Secondary Dark */
+}
+
+html.dark .main-name {
+  color: #E5EAF3;
+}
+
+html.dark .sub-name {
+  color: #A3A6AD;
+}
+
+html.dark .region-text {
+  color: #E5EAF3;
+}
+
+html.dark .elo-text {
+  color: #E5EAF3;
+}
+
+html.dark .rank-normal {
+  color: #A3A6AD;
+}
+
+html.dark .avatar {
+  border-color: #363637; /* 深色边框，避免白色突兀 */
+  background-color: #2b2b2b;
+}
+
+html.dark-l5 {
+  background: #4C4D4F; /* 深色模式下的L5背景 */
+  color: #b1b3b8;
+}
+
+/* 如果有需要，可以针对不同等级在深色模式下进行微调，
+   但目前的彩色方块在深色背景下通常也很好看，所以保持原样。
+   唯一可能需要调整的是 L5 (灰色)，上面已处理。
+*/
 </style>
