@@ -1,93 +1,159 @@
 <template>
   <div class="page-container home-content">
     
-    <img :src="logoImage" alt="Logo" class="my-logo" />
-
-    <!-- 修改：包裹“陆合枪汇”并添加类名 -->
-    <h1>👋 欢迎来到 <span class="brand-name">陆合枪汇</span></h1>
+    <!-- 移除了原有的中间大图，因为已经移到左上角了 -->
     
-    <p class="subtitle">这里记录大枪等级分、竞技赛事活动以及我的个人思考。</p>
-    
-    <div class="intro-box">
-      <h3>🛠️ 关于陆合枪汇</h3>
-      <p>本项目基于 Vue 3 + Vite 构建，旨在打造一个轻量级、可视化的武术数据发布平台。</p>
+    <div class="hero-section">
+      <h1>🏆 大枪等级分 <span class="version-tag">Beta</span></h1>
+      <p class="subtitle">基于 Elo 算法的古典武艺竞技对抗评估系统</p>
     </div>
+
+    <div class="cards-layout">
+      
+      <!-- 原有的介绍板块，改为介绍等级分 -->
+      <div class="intro-box info-card">
+        <h3>📊 什么是大枪等级分？</h3>
+        <p>这是一套旨在量化长枪竞技水平的数据系统。我们记录真实的实战与比赛结果，通过算法动态计算每位选手的战力值，直观呈现选手的竞技状态与成长轨迹。</p>
+      </div>
+
+      <!-- 新增：跳转排行榜的 Block -->
+      <div class="intro-box action-card" @click="$router.push('/rank')">
+        <div class="action-content">
+          <h3>🚀 查看综合排行榜</h3>
+          <p>点击浏览当前所有选手的实时排名、段位及地区分布。</p>
+        </div>
+        <div class="action-icon">➜</div>
+      </div>
+
+    </div>
+
   </div>
 </template>
 
 <script setup>
-// 引用图片：确保 src/assets/ 下面真的有 liuhelogo.png 这个文件
-import logoImage from '../assets/liuhelogo.png' 
+// 移除不再使用的图片引用
+import { useRouter } from 'vue-router'
+const router = useRouter()
 </script>
 
 <style scoped>
-/* 把两个 style 合并成一个了，看起来更干净 */
 .home-content {
   text-align: center;
-  padding: 40px 20px;
+  padding: 60px 20px;
+  max-width: 800px;
+  margin: 0 auto;
 }
 
-/* 📱 移动端：减少内边距 */
-@media (max-width: 768px) {
-  .home-content {
-    padding: 20px 10px;
-  }
-  
-  .my-logo {
-    width: 100px;
-    height: 100px;
-  }
-  
-  .intro-box {
-    max-width: 100%; /* 占满宽度 */
-  }
+.hero-section {
+  margin-bottom: 50px;
 }
 
-.my-logo {
-  width: 120px;
-  height: 120px;
-  border-radius: 0%; /* 圆形头像 */
-  object-fit: cover;  /* 防止图片变形 */
-  margin-bottom: 20px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.1); /* 加点阴影 */
-  border: 2px solid var(--el-border-color);
+h1 {
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+  color: var(--el-text-color-primary);
+  letter-spacing: -1px;
+}
+
+.version-tag {
+  font-size: 0.4em;
+  vertical-align: super;
+  background-color: var(--el-color-primary-light-9);
+  color: var(--el-color-primary);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 600;
 }
 
 .subtitle {
-  /*color: #666;*/
   color: var(--el-text-color-secondary);
-  font-size: 1.2em;
-  margin-bottom: 30px;
+  font-size: 1.25em;
+  margin-top: 10px;
+  font-weight: 400;
+}
+
+/* 卡片布局 */
+.cards-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  align-items: center;
 }
 
 .intro-box {
-  /*background: #f8f9fa;*/
-  background: var(--el-fill-color);
-  border: 1px solid var(--el-border-color);
-  padding: 20px;
-  border-radius: 8px;
-  display: inline-block;
+  background: var(--el-fill-color); /* 保持原有背景色逻辑 */
+  border: 1px solid var(--el-border-color); /* 保持原有边框逻辑 */
+  padding: 24px;
+  border-radius: 12px;
   text-align: left;
-  max-width: 600px; /* 限制一下文字框的最大宽度，防止太宽读着累 */
+  width: 100%;
+  max-width: 600px;
+  transition: all 0.3s ease;
 }
+
 .intro-box h3 {
   color: var(--el-text-color-primary);
   margin-top: 0;
+  font-size: 1.15rem;
+  margin-bottom: 10px;
 }
+
 .intro-box p {
   color: var(--el-text-color-regular);
   margin-bottom: 0;
+  line-height: 1.6;
 }
 
-/* === 新增：品牌名称手机端换行处理 === */
-.brand-name {
-  display: inline; /* PC端默认行内显示 */
+/* 🟢 修改：跳转卡片的特殊样式 */
+.action-card {
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--el-bg-color-overlay); /* 稍微突出一点 */
+  border: 1px solid var(--el-border-color-darker); /* 稍微加深边框 */
+  position: relative;
+  overflow: hidden;
 }
 
+.action-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+  border-color: var(--el-color-primary);
+}
+
+.action-card:hover h3 {
+  color: var(--el-color-primary);
+}
+
+.action-icon {
+  font-size: 24px;
+  color: var(--el-text-color-placeholder);
+  transition: transform 0.3s, color 0.3s;
+  font-weight: bold;
+}
+
+.action-card:hover .action-icon {
+  transform: translateX(4px);
+  color: var(--el-color-primary);
+}
+
+/* 📱 移动端适配 */
 @media (max-width: 768px) {
-  .brand-name {
-    display: block; /* 手机端变为块级元素，强制换行 */
-    margin-top: 4px; /* 增加一点行间距，更美观 */
+  .home-content {
+    padding: 30px 15px;
+  }
+  
+  h1 {
+    font-size: 1.8rem;
+  }
+  
+  .subtitle {
+    font-size: 1rem;
+  }
+
+  .intro-box {
+    padding: 20px;
   }
 }
 </style>

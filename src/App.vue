@@ -5,8 +5,8 @@
       
       <!-- 1. 左侧 Logo (独立区域，点击回主页) -->
       <div class="logo-wrapper absolute-left" @click="$router.push('/')">
-        <span class="logo-emoji">🦾</span>
-        <span class="logo-text">陆合枪汇</span>
+        <img :src="logoUrl" class="header-logo" alt="Logo" />
+        <span class="logo-text">大枪等级分</span>
       </div>
 
       <!-- 2. 中间 导航菜单 -->
@@ -68,6 +68,7 @@
 import { ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useDark } from '@vueuse/core'
+import logoUrl from './assets/liuhelogo.png' // 引入图片
 
 import { Moon, Sunny } from '@element-plus/icons-vue'
 
@@ -218,7 +219,18 @@ html.dark .el-menu--horizontal > .center-nav > .el-menu-item.is-active {
 .logo-emoji {
   font-size: 26px;
   margin-right: 8px;
+  display: none; /* 隐藏原来的 emoji */
 }
+
+/* 新增 Logo 图片样式 */
+.header-logo {
+  width: 40px;
+  height: 40px;
+  border-radius: 6px; /* 稍微给点圆角，看起来更现代 */
+  margin-right: 10px;
+  object-fit: cover;
+}
+
 .logo-text {
   font-size: 19px;
   font-weight: 700;
