@@ -74,7 +74,6 @@
             >
               {{ scope.row.grade }}
             </div>
-            <span v-else class="no-level" style="font-size: 12px; color: #ddd;">•</span>
           </template>
         </el-table-column>
 
@@ -425,8 +424,9 @@ onMounted(() => {
 @media (max-width: 768px) {
   /* 1. 使用负 margin 抵消 App.vue 中 main-box 的 20px padding */
   .leaderboard-container {
-    margin-left: -20px !important;  /* 👈 关键：向左拉出 20px */
-    width: calc(100% + 40px) !important; /* 👈 关键：补回总共 40px 的宽度 */
+    /* 修正：App.vue 在手机端 padding 已经是 0，所以这里不需要负 margin */
+    margin-left: 0 !important;
+    width: 100% !important;
     max-width: none !important;
     padding: 0 !important; /* 自身不留 padding */
     box-sizing: border-box;

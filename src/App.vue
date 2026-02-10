@@ -103,7 +103,13 @@ html, body {
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Helvetica, sans-serif;
   background-color: var(--el-bg-color-page);
   color: var(--el-text-color-primary);
-  overflow-y: scroll;
+  /* 修复：只保留 html 的滚动能力，防止滚动冲突 */
+  overflow-y: auto; 
+}
+
+/* 补充：确保 body 不产生额外的滚动条容器，而是随内容撑开 */
+body {
+  overflow-y: visible;
 }
 
 #app, .layout-container {
@@ -251,7 +257,9 @@ html.dark .el-menu--horizontal > .center-nav > .el-menu-item.is-active {
   max-width: 1200px;
   margin: 0 auto;
   padding: 40px 24px;
-  overflow-x: hidden;
+  /* 关键修复：覆盖 el-main 默认的 overflow: auto，消除双重滚动条 */
+  overflow-x: hidden; 
+  overflow-y: visible !important; 
 
   min-height: 0; /* ✅ 新增：允许子页面内部滚动容器正常工作 */
 }
