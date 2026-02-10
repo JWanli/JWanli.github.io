@@ -214,6 +214,7 @@ def migrate():
                 "runner_up": [x.strip() for x in item.get("亚军", "").split('\n') if x.strip()],
                 "third_place": [x.strip() for x in item.get("季军", "").split('\n') if x.strip()],
                 "top4": [x.strip() for x in item.get("四强", "").split('\n') if x.strip()],
+                "top6": [x.strip() for x in item.get("六强", "").split('\n') if x.strip()],
                 "top8": [x.strip() for x in item.get("八强", "").split('\n') if x.strip()]
             }
             

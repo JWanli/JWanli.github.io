@@ -57,7 +57,7 @@
         <el-link type="success" :underline="false" href="https://element-plus.org/" target="_blank">Element Plus</el-link>
       </p>
       <p class="footer-sub">
-        本站源码托管于 GitHub Pages | 传统武术
+        本站源码托管于 GitHub Pages | 大枪对抗
       </p>
     </el-footer>
 
