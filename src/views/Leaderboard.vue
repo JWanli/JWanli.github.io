@@ -54,18 +54,18 @@
                 {{ scope.row.name.charAt(0) }}
               </el-avatar>
               
-              <div class="name-info">
-                <span class="main-name">{{ scope.row.name }}</span>
-                <span v-if="scope.row.nick_name" class="sub-name">
-                  {{ scope.row.nick_name }}
-                </span>
-              </div>
+                  <div class="name-info">
+                    <span class="main-name">{{ scope.row.name }}</span>
+                    <span v-if="scope.row.nick_name" class="sub-name">
+                      {{ scope.row.nick_name }}
+                    </span>
+                  </div>
             </div>
           </template>
         </el-table-column>
 
         <!-- 4. 等级：PC端宽度缩小到 70 (原100) -->
-        <el-table-column label="" :width="isMobile ? 28 : 70" align="center">
+        <el-table-column label="" :width="isMobile ? 26 : 70" align="center">
           <template #default="scope">
             <div 
               v-if="scope.row.grade > 0"
@@ -448,11 +448,13 @@ html.dark .table-frame {
 
   /* 3. 卡片设置 */
   .table-frame {
-    /* 左右留 4px 间隙，配合更大的圆角 */
-    margin: 0 -4px !important; 
-    width: calc(100% + 8px) !important; 
+    /* 修正：去掉负margin，防止在极窄屏幕上出现横向滚动条，保证行宽一致 */
+    margin: 0 !important; 
+    width: 100% !important; 
     border-radius: 12px !important;
     box-shadow: 0 2px 8px rgba(0,0,0,0.04) !important;
+    border-left: none; /* 手机端去掉左右边框，增加可用空间 */
+    border-right: none;
   }
 
 
@@ -466,17 +468,43 @@ html.dark .table-frame {
     margin-right: 6px;
   }
 
+  /* 名字信息竖向排列，防止挤压 */
+  .name-info {
+    flex-direction: column !important; /* 强制竖向 */
+    align-items: flex-start !important;
+    justify-content: center; /* 垂直居中 */
+    gap: 0 !important;
+    flex: 1; /* 占据剩余空间 */
+    min-width: 0; /* 关键：允许 flex 子项缩小，配合 text-overflow */
+    height: 36px; /* 固定高度，确保有没有昵称都占一样的高度 */
+    overflow: hidden;
+  }
+
   /* 名字字体 */
   .main-name {
     font-size: 13px;
-    line-height: 1.2;
-    /* 确保手机端也不换行 */
+    line-height: 1.4;
     white-space: nowrap;
+    width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis; /* 超长省略 */
   }
 
   /* ✅ 新增：手机端显示昵称时，字体调小 */
   .sub-name {
-    font-size: 12px;
+    font-size: 11px; /* 再调小一点，且作为副标题在下方显示 */
+    color: #909399;
+    white-space: nowrap;
+    width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.2;
+    margin-top: 0;
+  }
+  
+  /* 强制固定行高，防止有无昵称出现高度差 */
+  :deep(.el-table__row) {
+    height: 58px !important;
   }
 
   .rank-change {
