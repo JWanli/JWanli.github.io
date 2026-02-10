@@ -178,6 +178,17 @@ def get_or_create_team_id(team_name):
     CACHE_TEAMS[team_name] = tid
     return tid
 
+def normalize_rank_change(val):
+    """
+    elo.txt 里的“升降”字段清洗：
+    只接受：↑ / ↓ / +
+    其他（空、未知）写入 NULL
+    """
+    v = (val or "").strip()
+    if v in ("↑", "↓", "+"):
+        return v
+    return None
+
 def migrate():
     print("🚀 开始迁移历史数据...")
     
@@ -233,6 +244,9 @@ def migrate():
             # 关键：如果没有姓名，用昵称填充 name 字段
             actual_name = name if name else nick
 
+            # 升降：↑/↓/+ -> 写入 players.rank_change
+            rank_change = normalize_rank_change(item.get("升降"))
+
             player_data = {
                 "name": actual_name,
                 "nick_name": nick if nick else None,
@@ -242,7 +256,8 @@ def migrate():
                 "bio": None, 
                 "achievements": achievements,
                 "grade": grade_val,
-                "activity": activity_val
+                "activity": activity_val,
+                "rank_change": rank_change,
             }
             
             # 写入 Player (先查是否存在)

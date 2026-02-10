@@ -55,7 +55,7 @@
               
               <div class="name-info">
                 <span class="main-name">{{ scope.row.name }}</span>
-                <span v-if="!isMobile && !isTablet && scope.row.nick_name" class="sub-name">
+                <span v-if="scope.row.nick_name" class="sub-name">
                   {{ scope.row.nick_name }}
                 </span>
               </div>
@@ -447,6 +447,11 @@ onMounted(() => {
     line-height: 1.2;
     /* 确保手机端也不换行 */
     white-space: nowrap;
+  }
+
+  /* ✅ 新增：手机端显示昵称时，字体调小 */
+  .sub-name {
+    font-size: 12px;
   }
 
   /* 强制压缩表格单元格的左右 padding，挤出空间给名字 */
