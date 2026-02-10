@@ -18,8 +18,8 @@
         @sort-change="handleSortChange"
       >
         
-        <!-- 1. 排名 -->
-        <el-table-column type="index" label="排名" :width="isMobile ? 38 : 70" align="center">
+        <!-- 1. 排名：调小宽度 -->
+        <el-table-column type="index" label="排名" :width="isMobile ? 36 : 70" align="center">
           <template #default="scope">
             <div class="rank-badge" :class="getRankClass(scope.$index)">
               {{ scope.$index + 1 }}
@@ -27,10 +27,10 @@
           </template>
         </el-table-column>
 
-        <!-- 2. 升降：列宽变小 -->
+        <!-- 2. 升降：图标调小，列宽微调 -->
         <el-table-column
           label=""
-          :width="isMobile ? 18 : 30"
+          :width="isMobile ? 20 : 30"
           align="center"
           class-name="rank-change-col"
         >
@@ -64,7 +64,7 @@
         </el-table-column>
 
         <!-- 4. 等级：PC端宽度缩小到 70 (原100) -->
-        <el-table-column label="" :width="isMobile ? 30 : 70" align="center">
+        <el-table-column label="" :width="isMobile ? 28 : 70" align="center">
           <template #default="scope">
             <div 
               v-if="scope.row.grade > 0"
@@ -77,8 +77,8 @@
           </template>
         </el-table-column>
 
-        <!-- 5. 地区：PC端宽度缩小到 100 (原120) -->
-        <el-table-column prop="region" label="地区" :width="isMobile ? 50 : 100" align="center" show-overflow-tooltip>
+        <!-- 5. 地区：微调宽度 -->
+        <el-table-column prop="region" label="地区" :width="isMobile ? 42 : 100" align="center" show-overflow-tooltip>
           <template #default="scope">
             <span class="region-text" :style="{ fontSize: isMobile ? '12px' : '15px' }">
               {{ scope.row.region || '-' }}
@@ -86,15 +86,15 @@
           </template>
         </el-table-column>
 
-        <!-- 6. 分数：PC端宽度缩小到 100 (原140) -->
-        <el-table-column prop="current_elo" label="分数" :width="isMobile ? 55 : 100" sortable align="center">
+        <!-- 6. 分数：微调宽度 -->
+        <el-table-column prop="current_elo" label="分数" :width="isMobile ? 48 : 100" sortable align="center">
           <template #default="scope">
             <span class="elo-text">{{ scope.row.current_elo }}</span>
           </template>
         </el-table-column>
 
-        <!-- 7. 活跃度：PC端宽度缩小到 120 (原140) -->
-        <el-table-column prop="activity" label="活跃" :width="isMobile ? 45 : 120" sortable="custom" align="center">
+        <!-- 7. 活跃度：加宽一点点防止表头换行 -->
+        <el-table-column prop="activity" label="活跃" :width="isMobile ? 50 : 120" sortable="custom" align="center">
           <template #default="scope">
             <!-- 电脑/iPad端：进度条 -->
             <div v-if="!isMobile" class="activity-cell">
@@ -222,6 +222,8 @@ onMounted(() => {
   font-weight: 800 !important;
   color: #303133 !important;
   letter-spacing: 0.2px;
+  /* 强制表头不换行，这是解决“活跃”换行的关键 */
+  white-space: nowrap !important;
 }
 
 /* 引入更加清晰的字体栈 */
@@ -290,6 +292,17 @@ onMounted(() => {
   border: 1px solid transparent;
   box-sizing: border-box;
 }
+
+/* 手机端减小升降符号大小 */
+@media (max-width: 768px) {
+  .rank-change {
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
+    line-height: 14px;
+  }
+}
+
 /* ↑ 绿色 */
 .rank-change-up {
   color: #67C23A;
@@ -390,6 +403,8 @@ onMounted(() => {
     max-width: none !important;
     padding: 0 !important; /* 自身不留 padding */
     box-sizing: border-box;
+    /* 🔴 禁止横向滚动条，锁死宽度 */
+    overflow-x: hidden;
   }
 
   /* 2. 标题也跟着拉宽了，稍微给点内边距 */
@@ -438,27 +453,22 @@ onMounted(() => {
   :deep(.el-table .cell) {
     padding: 0 2px !important;
   }
-
-  /* 等级盒子缩小 */
-  .level-box {
-    width: 18px;
-    height: 18px;
-    line-height: 18px;
-    font-size: 12px;
-  }
   
-  /* === 🔥 重写表头样式，解决文字显示不全问题 === */
-  
-  /* 强制减小表头单元格 padding */
+  /* 🔴 修复表头样式，确保活跃不换行 */
   :deep(.el-table__header-wrapper th .cell) {
     padding: 0 1px !important;  /* 左右缝隙 */
-    font-size: 14px !important; /* 字体 */
+    font-size: 13px !important; /* 🔴 调小字体 */
     font-weight: 700;
     line-height: 1.2;
-    display: flex;              /* 使用 Flex 布局让文字和图标挤在一起 */
-    justify-content: center;
+    display: flex;              
     align-items: center;
     font-weight: 600;
+  }
+
+  /* ✅ 新增：只有原本设定为居中的列（即包含 is-center 类的 th），才强制 flex 居中 */
+  /* 这样“选手”列没有 is-center，就会默认保持左对齐 */
+  :deep(.el-table__header-wrapper th.is-center .cell) {
+    justify-content: center;
   }
 
   /* 缩小排序小箭头的占位宽度 */
