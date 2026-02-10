@@ -27,8 +27,13 @@
           </template>
         </el-table-column>
 
-        <!-- 2. 升降：放在“排名”和“选手”中间 -->
-        <el-table-column label="升降" :width="isMobile ? 36 : 60" align="center">
+        <!-- 2. 升降：列宽变小 -->
+        <el-table-column
+          label=""
+          :width="isMobile ? 18 : 30"
+          align="center"
+          class-name="rank-change-col"
+        >
           <template #default="scope">
             <span
               v-if="scope.row.rank_change"
@@ -37,7 +42,6 @@
             >
               {{ scope.row.rank_change }}
             </span>
-            <span v-else class="rank-change rank-change-none">•</span>
           </template>
         </el-table-column>
 
@@ -212,6 +216,14 @@ onMounted(() => {
 </script>
 
 <style scoped>
+
+.custom-table :deep(.el-table__header-wrapper th .cell) {
+  font-size: 16px !important;
+  font-weight: 800 !important;
+  color: #303133 !important;
+  letter-spacing: 0.2px;
+}
+
 /* 引入更加清晰的字体栈 */
 .leaderboard-container {
   max-width: 1000px;
@@ -258,17 +270,43 @@ onMounted(() => {
   box-shadow: none;
   font-weight: 600;
 }
-.rank-change {
-  font-weight: 900;
-  font-size: 16px;
-  line-height: 1;
-  display: inline-block;
-  min-width: 16px;
-  text-align: center;
+:deep(.rank-change-col .cell) {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
-.rank-change-up  { color: #67C23A; } /* 绿色 */
-.rank-change-down{ color: #F56C6C; } /* 红色 */
-.rank-change-new { color: #E6A23C; } /* 黄色 */
+.rank-change {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  line-height: 18px;
+  font-weight: 900;
+  font-size: 18px;
+  border-radius: 4px;
+  border: 1px solid transparent;
+  box-sizing: border-box;
+}
+/* ↑ 绿色 */
+.rank-change-up {
+  color: #67C23A;
+
+}
+
+/* ↓ 红色 */
+.rank-change-down {
+  color: #F56C6C;
+
+}
+
+/* + 黄色（新加入） */
+.rank-change-new {
+  color: #E6A23C;
+
+}
 .rank-change-none{ color: #C0C4CC; } /* 无变化 */
 /* === 选手信息 === */
 .player-cell {
@@ -413,8 +451,9 @@ onMounted(() => {
   
   /* 强制减小表头单元格 padding */
   :deep(.el-table__header-wrapper th .cell) {
-    padding: 0 1px !important;  /* 左右几乎不留缝隙 */
-    font-size: 11px !important; /* 字体缩小 */
+    padding: 0 1px !important;  /* 左右缝隙 */
+    font-size: 14px !important; /* 字体 */
+    font-weight: 700;
     line-height: 1.2;
     display: flex;              /* 使用 Flex 布局让文字和图标挤在一起 */
     justify-content: center;
@@ -452,6 +491,10 @@ onMounted(() => {
 /* === 🌙 夜间模式适配 (Dark Mode) === */
 html.dark .title {
   color: #E5EAF3; /* Element Plus Text Primary Dark */
+}
+
+html.dark .custom-table :deep(.el-table__header-wrapper th .cell) {
+  color: #E5EAF3 !important;
 }
 
 html.dark .subtitle {
