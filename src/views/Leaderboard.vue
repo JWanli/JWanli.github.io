@@ -27,7 +27,21 @@
           </template>
         </el-table-column>
 
-        <!-- 2. 选手：自适应 -->
+        <!-- 2. 升降：放在“排名”和“选手”中间 -->
+        <el-table-column label="升降" :width="isMobile ? 36 : 60" align="center">
+          <template #default="scope">
+            <span
+              v-if="scope.row.rank_change"
+              class="rank-change"
+              :class="getRankChangeClass(scope.row.rank_change)"
+            >
+              {{ scope.row.rank_change }}
+            </span>
+            <span v-else class="rank-change rank-change-none">•</span>
+          </template>
+        </el-table-column>
+
+        <!-- 3. 选手：自适应 -->
         <el-table-column label="选手" min-width="90">
           <template #default="scope">
             <div class="player-cell" @click="goToProfile(scope.row.id)">
@@ -37,14 +51,15 @@
               
               <div class="name-info">
                 <span class="main-name">{{ scope.row.name }}</span>
-                <!-- 优化：在平板竖屏模式下(isTablet)隐藏昵称，防止名字挤压换行 -->
-                <span v-if="!isMobile && !isTablet && scope.row.nick_name" class="sub-name">{{ scope.row.nick_name }}</span>
+                <span v-if="!isMobile && !isTablet && scope.row.nick_name" class="sub-name">
+                  {{ scope.row.nick_name }}
+                </span>
               </div>
             </div>
           </template>
         </el-table-column>
 
-        <!-- 3. 等级：PC端宽度缩小到 70 (原100) -->
+        <!-- 4. 等级：PC端宽度缩小到 70 (原100) -->
         <el-table-column label="" :width="isMobile ? 30 : 70" align="center">
           <template #default="scope">
             <div 
@@ -58,7 +73,7 @@
           </template>
         </el-table-column>
 
-        <!-- 4. 地区：PC端宽度缩小到 100 (原120) -->
+        <!-- 5. 地区：PC端宽度缩小到 100 (原120) -->
         <el-table-column prop="region" label="地区" :width="isMobile ? 50 : 100" align="center" show-overflow-tooltip>
           <template #default="scope">
             <span class="region-text" :style="{ fontSize: isMobile ? '12px' : '15px' }">
@@ -67,14 +82,14 @@
           </template>
         </el-table-column>
 
-        <!-- 5. 分数：PC端宽度缩小到 100 (原140) -->
+        <!-- 6. 分数：PC端宽度缩小到 100 (原140) -->
         <el-table-column prop="current_elo" label="分数" :width="isMobile ? 55 : 100" sortable align="center">
           <template #default="scope">
             <span class="elo-text">{{ scope.row.current_elo }}</span>
           </template>
         </el-table-column>
 
-        <!-- 6. 活跃度：PC端宽度缩小到 120 (原140) -->
+        <!-- 7. 活跃度：PC端宽度缩小到 120 (原140) -->
         <el-table-column prop="activity" label="活跃" :width="isMobile ? 45 : 120" sortable="custom" align="center">
           <template #default="scope">
             <!-- 电脑/iPad端：进度条 -->
@@ -148,7 +163,7 @@ const fetchData = async () => {
   try {
     const { data, error } = await supabase
       .from('players')
-      .select('id, name, nick_name, region, current_elo, avatar_url, activity, grade')
+      .select('id, name, nick_name, region, current_elo, avatar_url, activity, grade, rank_change')
       .order('current_elo', { ascending: false })
 
     if (error) throw error
@@ -165,8 +180,14 @@ const goToProfile = (id) => {
 }
 
 const getRankClass = (index) => {
+  return 'rank-normal'
+}
 
-  return 'rank-normal'             
+const getRankChangeClass = (val) => {
+  if (val === '↑') return 'rank-change-up'
+  if (val === '↓') return 'rank-change-down'
+  if (val === '+') return 'rank-change-new'
+  return 'rank-change-none'
 }
 
 const getLevelClass = (grade) => {
@@ -229,21 +250,7 @@ onMounted(() => {
   box-shadow: 0 2px 6px rgba(0,0,0,0.15);
 }
 
-/* 🥇 冠军色 */
-.rank-1 {
-  background: linear-gradient(135deg, #FFD700 0%, #FDB931 100%);
-  text-shadow: 0 1px 1px rgba(0,0,0,0.2);
-  transform: scale(1.1); /* 冠军稍微大一点 */
-}
-/* 🥈 亚军色 */
-.rank-2 {
-  background: linear-gradient(135deg, #E0E0E0 0%, #BDBDBD 100%);
-  color: #555;
-}
-/* 🥉 季军色 */
-.rank-3 {
-  background: linear-gradient(135deg, #CD7F32 0%, #A0522D 100%);
-}
+
 /* 普通排名 */
 .rank-normal {
   background: transparent;
@@ -251,12 +258,24 @@ onMounted(() => {
   box-shadow: none;
   font-weight: 600;
 }
-
+.rank-change {
+  font-weight: 900;
+  font-size: 16px;
+  line-height: 1;
+  display: inline-block;
+  min-width: 16px;
+  text-align: center;
+}
+.rank-change-up  { color: #67C23A; } /* 绿色 */
+.rank-change-down{ color: #F56C6C; } /* 红色 */
+.rank-change-new { color: #E6A23C; } /* 黄色 */
+.rank-change-none{ color: #C0C4CC; } /* 无变化 */
 /* === 选手信息 === */
 .player-cell {
   display: flex;
   align-items: center;
   cursor: pointer;
+  padding-left: 0px; /* ✅ 新增：整体右移一点 */
 }
 .avatar {
   margin-right: 15px;
@@ -287,7 +306,7 @@ onMounted(() => {
   transition: color 0.3s;
 }
 
-/* === 等级方框 (这里改 Lv 方块的样式) === */
+/* === 等级方块 (这里改 Lv 方块的样式) === */
 .level-box {
   display: inline-block;
   width: 24px;   /* 固定宽度 */
