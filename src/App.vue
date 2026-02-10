@@ -68,7 +68,7 @@
 import { ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useDark } from '@vueuse/core'
-import logoUrl from './assets/liuhelogo.png' // 引入图片
+import logoUrl from './assets/logo.jpg' // 引入图片
 
 import { Moon, Sunny } from '@element-plus/icons-vue'
 
@@ -226,7 +226,7 @@ html.dark .el-menu--horizontal > .center-nav > .el-menu-item.is-active {
 .header-logo {
   width: 40px;
   height: 40px;
-  border-radius: 6px; /* 稍微给点圆角，看起来更现代 */
+  border-radius: 6px;
   margin-right: 10px;
   object-fit: cover;
 }
