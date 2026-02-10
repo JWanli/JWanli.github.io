@@ -265,6 +265,13 @@ onMounted(() => {
   /* 稍微轻一点的阴影，更接近原生 */
   box-shadow: 0 1px 4px rgba(0,0,0,0.05); 
   border: 1px solid #ebeef5; /* Element Plus 默认边框色 */
+  transition: background-color 0.3s, border-color 0.3s;
+}
+
+html.dark .table-frame {
+  background: #1d1e1f;
+  border: 1px solid #434343; /* 深色边框 */
+  box-shadow: 0 1px 4px rgba(0,0,0,0.2);
 }
 
 .header {
@@ -500,23 +507,23 @@ onMounted(() => {
     font-size: 13px !important; /* 🔴 调小字体 */
     font-weight: 700;
     line-height: 1.2;
-    display: flex;              
-    align-items: center;
+  display: flex;
+  align-items: center;
     font-weight: 600;
-  }
+}
 
   /* ✅ 新增：只有原本设定为居中的列（即包含 is-center 类的 th），才强制 flex 居中 */
   /* 这样“选手”列没有 is-center，就会默认保持左对齐 */
   :deep(.el-table__header-wrapper th.is-center .cell) {
-    justify-content: center;
-  }
+  justify-content: center;
+}
 
   /* 缩小排序小箭头的占位宽度 */
   :deep(.el-table .caret-wrapper) {
     width: 11px !important;
     margin-left: 0px !important; 
-  }
-  
+}
+
   /* 调整排序小箭头的形状大小 */
   :deep(.el-table .sort-caret) {
     border-width: 4px !important;
