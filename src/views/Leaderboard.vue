@@ -19,7 +19,7 @@
       >
         
         <!-- 1. 排名：调小宽度 -->
-        <el-table-column type="index" label="排名" :width="isMobile ? 36 : 70" align="center">
+        <el-table-column type="index" label="排名" :width="isMobile ? 42 : 70" align="center">
           <template #default="scope">
             <div class="rank-badge" :class="getRankClass(scope.$index)">
               {{ scope.$index + 1 }}
@@ -104,7 +104,7 @@
         <el-table-column 
           prop="activity" 
           label="活跃" 
-          :width="isMobile ? 50 : 120" 
+          :width="isMobile ? 56 : 120" 
           sortable="custom" 
           :sort-orders="['descending', 'ascending', null]"
           align="center"
@@ -260,10 +260,10 @@ onMounted(() => {
 
 .table-frame {
   background: #fff;
-  border-radius: 8px;
+  border-radius: 12px; /* 增加圆角 */
+  overflow: hidden; /* 确保圆角不被内部元素遮挡 */
   /* 稍微轻一点的阴影，更接近原生 */
   box-shadow: 0 1px 4px rgba(0,0,0,0.05); 
-  /* 保持 overflow hidden 以切角，但这层很薄，不会影响滚动事件捕获 */
   border: 1px solid #ebeef5; /* Element Plus 默认边框色 */
 }
 
@@ -439,11 +439,12 @@ onMounted(() => {
   }
   .title { font-size: 22px; }
 
-  /* 3. 卡片设置：现在容器已经撑满屏幕了 */
+  /* 3. 卡片设置 */
   .table-frame {
-    margin: 0 6px !important; /* 👈 左右留 6px 间隙 */
-    width: calc(100% - 12px) !important; /* 宽度相应减去 12px */
-    border-radius: 8px !important;
+    /* 左右留 4px 间隙，配合更大的圆角 */
+    margin: 0 -4px !important; 
+    width: calc(100% + 8px) !important; 
+    border-radius: 12px !important;
     box-shadow: 0 2px 8px rgba(0,0,0,0.04) !important;
   }
 
@@ -481,6 +482,16 @@ onMounted(() => {
   /* 强制压缩表格单元格的左右 padding，挤出空间给名字 */
   :deep(.el-table .cell) {
     padding: 0 2px !important;
+  }
+  
+  /* 优化：第一列和最后一列增加边距，防止贴边 */
+  :deep(.el-table__header-wrapper th:first-child .cell),
+  :deep(.el-table__body-wrapper td:first-child .cell) {
+    padding-left: 10px !important;
+  }
+  :deep(.el-table__header-wrapper th:last-child .cell),
+  :deep(.el-table__body-wrapper td:last-child .cell) {
+    padding-right: 10px !important;
   }
   
   /* 🔴 修复表头样式，确保活跃不换行 */
