@@ -107,6 +107,14 @@
                 </div>
               </div>
 
+              <!-- ✅ 新增：六强展示块（保持现有 semi 风格） -->
+              <div v-if="achievements.top6?.length" class="achieve-group">
+                <div class="achieve-title semi">🎗 六强</div>
+                <div v-for="(item, i) in achievements.top6" :key="i" class="achieve-item">
+                  {{ item }}
+                </div>
+              </div>
+
               <div v-if="achievements.top8?.length" class="achieve-group">
                 <div class="achieve-title normal">🎖 八强</div>
                 <div v-for="(item, i) in achievements.top8" :key="i" class="achieve-item">
@@ -156,12 +164,13 @@ const chartOption = ref({})
 // 判断是否有荣誉数据
 const hasAchievements = computed(() => {
   if (!achievements.value) return false
-  // 增加 third_place (季军) 的判断
-  const { champion, runner_up, third_place, top4, top8 } = achievements.value
-  return (champion?.length || 0) + 
-         (runner_up?.length || 0) + 
-         (third_place?.length || 0) + 
-         (top4?.length || 0) + 
+  // 增加 top6 (六强) 的判断
+  const { champion, runner_up, third_place, top4, top6, top8 } = achievements.value
+  return (champion?.length || 0) +
+         (runner_up?.length || 0) +
+         (third_place?.length || 0) +
+         (top4?.length || 0) +
+         (top6?.length || 0) +
          (top8?.length || 0) > 0
 })
 
