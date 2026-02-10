@@ -252,6 +252,8 @@ html.dark .el-menu--horizontal > .center-nav > .el-menu-item.is-active {
   margin: 0 auto;
   padding: 40px 24px;
   overflow-x: hidden;
+
+  min-height: 0; /* ✅ 新增：允许子页面内部滚动容器正常工作 */
 }
 
 .footer-box {

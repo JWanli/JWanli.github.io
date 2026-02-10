@@ -5,12 +5,11 @@
       <p class="subtitle">实时更新 • 实力见证</p>
     </div>
 
-    <el-card class="box-card" shadow="hover">
+    <div class="table-frame">
       <el-table 
         v-loading="loading" 
         :data="tableData" 
         style="width: 100%" 
-        :row-style="{ height: isMobile ? '50px' : '65px' }" 
         stripe
         :size="isMobile ? 'small' : 'default'"
         :default-sort="{ prop: 'current_elo', order: 'descending' }"
@@ -119,7 +118,7 @@
         </el-table-column>
 
       </el-table>
-    </el-card>
+    </div>
   </div>
 </template>
 
@@ -216,7 +215,6 @@ onMounted(() => {
 </script>
 
 <style scoped>
-
 .custom-table :deep(.el-table__header-wrapper th .cell) {
   font-size: 16px !important;
   font-weight: 800 !important;
@@ -232,6 +230,15 @@ onMounted(() => {
   margin: 0 auto;
   padding: 30px 20px;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+.table-frame {
+  background: #fff;
+  border-radius: 8px;
+  /* 稍微轻一点的阴影，更接近原生 */
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05); 
+  /* 保持 overflow hidden 以切角，但这层很薄，不会影响滚动事件捕获 */
+  border: 1px solid #ebeef5; /* Element Plus 默认边框色 */
 }
 
 .header {
@@ -294,14 +301,7 @@ onMounted(() => {
 }
 
 /* 手机端减小升降符号大小 */
-@media (max-width: 768px) {
-  .rank-change {
-    font-size: 14px;
-    width: 14px;
-    height: 14px;
-    line-height: 14px;
-  }
-}
+
 
 /* ↑ 绿色 */
 .rank-change-up {
@@ -403,8 +403,6 @@ onMounted(() => {
     max-width: none !important;
     padding: 0 !important; /* 自身不留 padding */
     box-sizing: border-box;
-    /* 🔴 禁止横向滚动条，锁死宽度 */
-    overflow-x: hidden;
   }
 
   /* 2. 标题也跟着拉宽了，稍微给点内边距 */
@@ -415,21 +413,13 @@ onMounted(() => {
   .title { font-size: 22px; }
 
   /* 3. 卡片设置：现在容器已经撑满屏幕了 */
-  .box-card {
-    /* 这里设置你想要的“极窄缝隙” */
+  .table-frame {
     margin: 0 6px !important; /* 👈 左右留 6px 间隙 */
     width: calc(100% - 12px) !important; /* 宽度相应减去 12px */
-    
-    border: 1px solid var(--el-border-color-light) !important;
     border-radius: 8px !important;
     box-shadow: 0 2px 8px rgba(0,0,0,0.04) !important;
-    overflow: hidden;
   }
 
-  /* 4. 卡片内容去内边距 */
-  :deep(.el-card__body) {
-    padding: 0 6px !important;
-  }
 
   /* 这种超紧凑模式下，分数需要很小 */
   .elo-text {
@@ -452,6 +442,13 @@ onMounted(() => {
   /* ✅ 新增：手机端显示昵称时，字体调小 */
   .sub-name {
     font-size: 12px;
+  }
+
+  .rank-change {
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
+    line-height: 14px;
   }
 
   /* 强制压缩表格单元格的左右 padding，挤出空间给名字 */
