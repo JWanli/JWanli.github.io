@@ -86,14 +86,28 @@
         </el-table-column>
 
         <!-- 6. 分数：微调宽度 -->
-        <el-table-column prop="current_elo" label="分数" :width="isMobile ? 48 : 100" sortable align="center">
+        <el-table-column 
+          prop="current_elo" 
+          label="分数" 
+          :width="isMobile ? 48 : 100" 
+          sortable 
+          :sort-orders="['descending', 'ascending', null]"
+          align="center"
+        >
           <template #default="scope">
             <span class="elo-text">{{ scope.row.current_elo }}</span>
           </template>
         </el-table-column>
 
         <!-- 7. 活跃度：加宽一点点防止表头换行 -->
-        <el-table-column prop="activity" label="活跃" :width="isMobile ? 50 : 120" sortable="custom" align="center">
+        <el-table-column 
+          prop="activity" 
+          label="活跃" 
+          :width="isMobile ? 50 : 120" 
+          sortable="custom" 
+          :sort-orders="['descending', 'ascending', null]"
+          align="center"
+        >
           <template #default="scope">
             <!-- 电脑/iPad端：进度条 -->
             <div v-if="!isMobile" class="activity-cell">
