@@ -15,6 +15,7 @@
         :default-sort="{ prop: 'current_elo', order: 'descending' }"
         class="custom-table"
         @sort-change="handleSortChange"
+        @row-click="handleRowClick"
       >
         
         <!-- 1. 排名：调小宽度 -->
@@ -47,7 +48,8 @@
         <!-- 3. 选手：自适应 -->
         <el-table-column label="选手" min-width="90">
           <template #default="scope">
-            <div class="player-cell" @click="goToProfile(scope.row.id)">
+            <!-- 移除 div 上的 @click，交由 tr 统一处理 -->
+            <div class="player-cell">
               <el-avatar :size="isMobile ? 32 : 44" :src="scope.row.avatar_url" class="avatar">
                 {{ scope.row.name.charAt(0) }}
               </el-avatar>
@@ -175,6 +177,11 @@ const handleSortChange = ({ prop, order }) => {
   }
 }
 
+// 新增：点击整行跳转
+const handleRowClick = (row) => {
+  goToProfile(row.id)
+}
+
 const fetchData = async () => {
   loading.value = true
   try {
@@ -236,6 +243,12 @@ onMounted(() => {
   letter-spacing: 0.2px;
   /* 强制表头不换行，这是解决“活跃”换行的关键 */
   white-space: nowrap !important;
+}
+
+/* 新增：让表格行显示为手指形状，提示可点击 */
+.custom-table :deep(.el-table__row) {
+  cursor: pointer;
+  transition: background-color 0.2s; /* 增加简单的悬停过渡效果 */
 }
 
 /* 引入更加清晰的字体栈 */
@@ -339,7 +352,7 @@ onMounted(() => {
 .player-cell {
   display: flex;
   align-items: center;
-  cursor: pointer;
+  /* cursor: pointer; 移除这里单独的 pointer */
   padding-left: 0px; /* ✅ 新增：整体右移一点 */
 }
 .avatar {
