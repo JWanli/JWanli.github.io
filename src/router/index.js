@@ -1,10 +1,10 @@
 import { createRouter, createWebHashHistory } from 'vue-router' // 或者 createWebHistory
 
-// 引入组件
-import Home from '../views/Home.vue'
-import Leaderboard from '../views/Leaderboard.vue'
-import Activity from '../views/Activity.vue'
-import Profile from '../views/Profile.vue' // <--- 新增引入
+// 视图组件使用懒加载（路由级动态 import），减少首屏 JS 体积
+const Home = () => import('../views/Home.vue')
+const Leaderboard = () => import('../views/Leaderboard.vue')
+const Activity = () => import('../views/Activity.vue')
+const Profile = () => import('../views/Profile.vue')
 
 const routes = [
   { path: '/', component: Home },
