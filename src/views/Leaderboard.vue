@@ -14,6 +14,7 @@
         :size="isMobile ? 'small' : 'default'"
         :default-sort="{ prop: 'current_elo', order: 'descending' }"
         class="custom-table"
+        :row-class-name="getRowClassName"
         @sort-change="handleSortChange"
         @row-click="handleRowClick"
       >
@@ -134,24 +135,17 @@
 
       </el-table>
 
-      <div class="pagination-bar">
-        <el-pagination
-          v-model:current-page="currentPage"
-          v-model:page-size="pageSize"
-          :page-sizes="[20, 50, 100]"
-          :total="total"
-          :layout="isMobile ? 'prev, pager, next' : 'total, sizes, prev, pager, next, jumper'"
-          background
-          @current-change="handleCurrentPageChange"
-          @size-change="handlePageSizeChange"
-        />
+      <div class="load-more" :class="{ done: !hasMore && tableData.length }">
+        <span v-if="loadingMore">加载中…</span>
+        <span v-else-if="!hasMore && tableData.length">已加载全部</span>
       </div>
+      <div ref="sentinel" class="sentinel" aria-hidden="true"></div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue' 
+import { ref, onMounted, onBeforeUnmount, computed } from 'vue' 
 import { useRouter } from 'vue-router'
 import { supabase } from '../supabase'
 import { useWindowSize } from '@vueuse/core'
@@ -159,11 +153,16 @@ import { useWindowSize } from '@vueuse/core'
 const router = useRouter()
 const loading = ref(true)
 const tableData = ref([])
-const total = ref(0)
 
-// 分页：避免一次性拉取全部玩家数据
-const currentPage = ref(1)
-const pageSize = ref(50)
+// “流水屏”体验：不显示分页，但仍然分批拉取并追加
+const pageSize = ref(60)
+const pageIndex = ref(0)
+const hasMore = ref(true)
+const loadingMore = ref(false)
+const sentinel = ref(null)
+let observer = null
+let sentinelIntersecting = false
+let scrollTicking = false
 
 // 服务端排序：避免只在前端对“当前页”排序
 const sortProp = ref('current_elo')
@@ -190,8 +189,7 @@ const handleSortChange = ({ prop, order }) => {
     sortOrder.value = order
   }
 
-  currentPage.value = 1
-  fetchData()
+  resetAndFetch()
 }
 
 // 新增：点击整行跳转
@@ -199,37 +197,36 @@ const handleRowClick = (row) => {
   goToProfile(row.id)
 }
 
-const fetchData = async () => {
+const buildLeaderboardQuery = () => {
+  let query = supabase
+    .from('players')
+    .select('id, name, nick_name, region, current_elo, avatar_url, activity, grade, rank_change')
+
+  if (sortProp.value === 'activity') {
+    const asc = sortOrder.value === 'ascending'
+    query = query
+      .order('activity', { ascending: asc, nullsLast: true })
+      .order('current_elo', { ascending: false })
+  } else {
+    const asc = sortOrder.value === 'ascending'
+    query = query.order(sortProp.value, { ascending: asc })
+
+    // 让排序稳定一点：非 Elo 排序时，用 Elo 作次级排序
+    if (sortProp.value !== 'current_elo') {
+      query = query.order('current_elo', { ascending: false })
+    }
+  }
+
+  return query
+}
+
+const fetchFirstPage = async () => {
   loading.value = true
   try {
-    const from = (currentPage.value - 1) * pageSize.value
-    const to = from + pageSize.value - 1
-
-    let query = supabase
-      .from('players')
-      .select('id, name, nick_name, region, current_elo, avatar_url, activity, grade, rank_change', { count: 'exact' })
-
-    // 根据当前排序字段走服务端排序
-    if (sortProp.value === 'activity') {
-      const asc = sortOrder.value === 'ascending'
-      query = query
-        .order('activity', { ascending: asc, nullsLast: true })
-        .order('current_elo', { ascending: false })
-    } else {
-      const asc = sortOrder.value === 'ascending'
-      query = query.order(sortProp.value, { ascending: asc })
-
-      // 让排序稳定一点：非 Elo 排序时，用 Elo 作次级排序
-      if (sortProp.value !== 'current_elo') {
-        query = query.order('current_elo', { ascending: false })
-      }
-    }
-
-    const { data, error, count } = await query.range(from, to)
-
-    if (error) throw error
-    tableData.value = data
-    total.value = count || 0
+    tableData.value = []
+    pageIndex.value = 0
+    hasMore.value = true
+    await fetchMore()
   } catch (err) {
     console.error('获取排名失败:', err)
   } finally {
@@ -237,19 +234,80 @@ const fetchData = async () => {
   }
 }
 
-const handleCurrentPageChange = (page) => {
-  currentPage.value = page
-  fetchData()
+const fetchMore = async () => {
+  if (!hasMore.value || loadingMore.value) return
+  loadingMore.value = true
+
+  try {
+    const from = pageIndex.value * pageSize.value
+    const to = from + pageSize.value - 1
+
+    const query = buildLeaderboardQuery()
+    const { data, error } = await query.range(from, to)
+    if (error) throw error
+
+    const rows = (data || []).map(r => ({ ...r, __justAdded: true }))
+    tableData.value = tableData.value.concat(rows)
+    pageIndex.value += 1
+
+    if (rows.length < pageSize.value) {
+      hasMore.value = false
+    }
+
+    // 让新增数据“柔和出现”，避免数字瞬间跳变的突兀感
+    window.setTimeout(() => {
+      for (const row of rows) {
+        row.__justAdded = false
+      }
+    }, 450)
+  } catch (err) {
+    console.error('获取更多排名失败:', err)
+    // 防止滚动时无限报错
+    hasMore.value = false
+  } finally {
+    loadingMore.value = false
+
+    // 关键：如果用户滑得很快，sentinel 在加载期间一直处于可见状态，
+    // IntersectionObserver 可能不会再次触发；这里主动“补一脚”。
+    if (sentinelIntersecting && hasMore.value && !loading.value) {
+      queueMicrotask(() => fetchMore())
+    }
+  }
 }
 
-const handlePageSizeChange = (size) => {
-  pageSize.value = size
-  currentPage.value = 1
-  fetchData()
+// 主动预加载：快接近底部前就把下一批拉回来，避免“到底了才加载”造成卡顿/抖动
+const maybePrefetch = () => {
+  if (!hasMore.value || loadingMore.value || loading.value) return
+  const doc = document.documentElement
+  const distanceToBottom = doc.scrollHeight - (window.scrollY + window.innerHeight)
+  if (distanceToBottom < 1400) {
+    fetchMore()
+  }
 }
 
-const getDisplayRank = (indexInPage) => {
-  return (currentPage.value - 1) * pageSize.value + indexInPage + 1
+const onScroll = () => {
+  if (scrollTicking) return
+  scrollTicking = true
+  requestAnimationFrame(() => {
+    scrollTicking = false
+    maybePrefetch()
+  })
+}
+
+const resetAndFetch = async () => {
+  // 排序变更时：重置列表，再重新拉取第一批
+  hasMore.value = true
+  pageIndex.value = 0
+  await fetchFirstPage()
+}
+
+const getDisplayRank = (indexInList) => {
+  // 无限滚动模式下，index 就是全局排名
+  return indexInList + 1
+}
+
+const getRowClassName = ({ row }) => {
+  return row.__justAdded ? 'row-fade-in' : ''
 }
 
 const goToProfile = (id) => {
@@ -284,7 +342,31 @@ const getActivityColor = (val) => {
 }
 
 onMounted(() => {
-  fetchData()
+  fetchFirstPage()
+
+  window.addEventListener('scroll', onScroll, { passive: true })
+
+  // 监听底部哨兵进入视口，自动加载下一批
+  observer = new IntersectionObserver(
+    (entries) => {
+      sentinelIntersecting = entries.some(e => e.isIntersecting)
+      if (sentinelIntersecting) fetchMore()
+    },
+    // 作为兜底：提前更远触发
+    { root: null, rootMargin: '1200px 0px', threshold: 0 }
+  )
+
+  if (sentinel.value) {
+    observer.observe(sentinel.value)
+  }
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('scroll', onScroll)
+  if (observer) {
+    observer.disconnect()
+    observer = null
+  }
 })
 </script>
 
@@ -304,12 +386,30 @@ onMounted(() => {
   transition: background-color 0.2s; /* 增加简单的悬停过渡效果 */
 }
 
+/* 新增：无限滚动追加数据时的柔和出现动画 */
+:deep(.el-table__row.row-fade-in) {
+  animation: rowFadeIn 0.35s ease-out both;
+}
+
+@keyframes rowFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 /* 引入更加清晰的字体栈 */
 .leaderboard-container {
   max-width: 1000px;
   margin: 0 auto;
   padding: 30px 20px;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  /* 防止浏览器 scroll anchoring 导致追加数据时视口跳动 */
+  overflow-anchor: none;
 }
 
 .table-frame {
@@ -322,14 +422,20 @@ onMounted(() => {
   transition: background-color 0.3s, border-color 0.3s;
 }
 
-.pagination-bar {
-  padding: 12px 12px;
-  display: flex;
-  justify-content: center;
+.load-more {
+  padding: 10px 0 14px;
+  text-align: center;
+  font-size: 13px;
+  color: #909399;
+  min-height: 34px; /* 固定高度，避免加载提示出现/消失导致页面轻微跳动 */
 }
 
-html.dark .pagination-bar {
-  background: #1d1e1f;
+.load-more.done {
+  color: #c0c4cc;
+}
+
+.sentinel {
+  height: 1px;
 }
 
 html.dark .table-frame {
