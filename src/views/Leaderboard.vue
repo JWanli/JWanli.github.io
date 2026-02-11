@@ -22,7 +22,7 @@
         <el-table-column type="index" label="排名" :width="isMobile ? 42 : 70" align="center">
           <template #default="scope">
             <div class="rank-badge" :class="getRankClass(scope.$index)">
-              {{ scope.$index + 1 }}
+              {{ getDisplayRank(scope.$index) }}
             </div>
           </template>
         </el-table-column>
@@ -91,7 +91,7 @@
           prop="current_elo" 
           label="分数" 
           :width="isMobile ? 48 : 100" 
-          sortable 
+          sortable="custom" 
           :sort-orders="['descending', 'ascending', null]"
           align="center"
         >
@@ -133,6 +133,19 @@
         </el-table-column>
 
       </el-table>
+
+      <div class="pagination-bar">
+        <el-pagination
+          v-model:current-page="currentPage"
+          v-model:page-size="pageSize"
+          :page-sizes="[20, 50, 100]"
+          :total="total"
+          :layout="isMobile ? 'prev, pager, next' : 'total, sizes, prev, pager, next, jumper'"
+          background
+          @current-change="handleCurrentPageChange"
+          @size-change="handlePageSizeChange"
+        />
+      </div>
     </div>
   </div>
 </template>
@@ -146,6 +159,15 @@ import { useWindowSize } from '@vueuse/core'
 const router = useRouter()
 const loading = ref(true)
 const tableData = ref([])
+const total = ref(0)
+
+// 分页：避免一次性拉取全部玩家数据
+const currentPage = ref(1)
+const pageSize = ref(50)
+
+// 服务端排序：避免只在前端对“当前页”排序
+const sortProp = ref('current_elo')
+const sortOrder = ref('descending')
 
 const { width } = useWindowSize()
 
@@ -159,21 +181,17 @@ const isTablet = computed(() => width.value >= 768 && width.value < 1100)
 
 // 处理表格排序
 const handleSortChange = ({ prop, order }) => {
-  if (prop === 'activity') {
-    tableData.value.sort((a, b) => {
-      const actA = a.activity || 0
-      const actB = b.activity || 0
-      
-      // 如果活跃度相同，则始终按 ELO 分数降序排列（分数高的在前）
-      if (actA === actB) {
-        return b.current_elo - a.current_elo
-      }
-      
-      // 否则按活跃度排序
-      // ascending: 升序 (小 -> 大)，descending: 降序 (大 -> 小)
-      return order === 'ascending' ? actA - actB : actB - actA
-    })
+  // 点击第三次清空排序时，回到默认：按 Elo 降序
+  if (!order) {
+    sortProp.value = 'current_elo'
+    sortOrder.value = 'descending'
+  } else {
+    sortProp.value = prop
+    sortOrder.value = order
   }
+
+  currentPage.value = 1
+  fetchData()
 }
 
 // 新增：点击整行跳转
@@ -184,18 +202,54 @@ const handleRowClick = (row) => {
 const fetchData = async () => {
   loading.value = true
   try {
-    const { data, error } = await supabase
+    const from = (currentPage.value - 1) * pageSize.value
+    const to = from + pageSize.value - 1
+
+    let query = supabase
       .from('players')
-      .select('id, name, nick_name, region, current_elo, avatar_url, activity, grade, rank_change')
-      .order('current_elo', { ascending: false })
+      .select('id, name, nick_name, region, current_elo, avatar_url, activity, grade, rank_change', { count: 'exact' })
+
+    // 根据当前排序字段走服务端排序
+    if (sortProp.value === 'activity') {
+      const asc = sortOrder.value === 'ascending'
+      query = query
+        .order('activity', { ascending: asc, nullsLast: true })
+        .order('current_elo', { ascending: false })
+    } else {
+      const asc = sortOrder.value === 'ascending'
+      query = query.order(sortProp.value, { ascending: asc })
+
+      // 让排序稳定一点：非 Elo 排序时，用 Elo 作次级排序
+      if (sortProp.value !== 'current_elo') {
+        query = query.order('current_elo', { ascending: false })
+      }
+    }
+
+    const { data, error, count } = await query.range(from, to)
 
     if (error) throw error
     tableData.value = data
+    total.value = count || 0
   } catch (err) {
     console.error('获取排名失败:', err)
   } finally {
     loading.value = false
   }
+}
+
+const handleCurrentPageChange = (page) => {
+  currentPage.value = page
+  fetchData()
+}
+
+const handlePageSizeChange = (size) => {
+  pageSize.value = size
+  currentPage.value = 1
+  fetchData()
+}
+
+const getDisplayRank = (indexInPage) => {
+  return (currentPage.value - 1) * pageSize.value + indexInPage + 1
 }
 
 const goToProfile = (id) => {
@@ -266,6 +320,16 @@ onMounted(() => {
   box-shadow: 0 1px 4px rgba(0,0,0,0.05); 
   border: 1px solid #ebeef5; /* Element Plus 默认边框色 */
   transition: background-color 0.3s, border-color 0.3s;
+}
+
+.pagination-bar {
+  padding: 12px 12px;
+  display: flex;
+  justify-content: center;
+}
+
+html.dark .pagination-bar {
+  background: #1d1e1f;
 }
 
 html.dark .table-frame {
