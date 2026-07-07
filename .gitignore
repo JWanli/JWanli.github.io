@@ -23,5 +23,5 @@ dist-ssr
 *.sln
 *.sw?
 .env
-asset/elo.txt
+/python_files/asset/*
 __pycache__/

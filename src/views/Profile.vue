@@ -144,6 +144,7 @@ import { ref, onMounted, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { supabase } from '../supabase'
 import { ArrowLeft } from '@element-plus/icons-vue'
+import { useWindowSize } from '@vueuse/core'
 
 // ECharts 相关
 import { use } from 'echarts/core'
@@ -160,6 +161,9 @@ const player = ref(null)
 const teams = ref([]) // 存储团体列表
 const achievements = ref({}) // 存储荣誉对象
 const chartOption = ref({})
+const { width } = useWindowSize()
+
+const isNarrowScreen = computed(() => width.value < 768)
 
 // 判断是否有荣誉数据
 const hasAchievements = computed(() => {
@@ -225,9 +229,11 @@ const fetchPlayerDetail = async () => {
       .order('date', { ascending: true })
     
     if (!hError) {
-      const dates = hData.map(d => d.date)
-      const scores = hData.map(d => d.new_elo)
-      setupChart(dates, scores)
+      const historyPoints = hData
+        .map(d => [d.date, d.new_elo])
+        .sort((a, b) => new Date(a[0]) - new Date(b[0]))
+
+      setupChart(historyPoints)
     }
 
   } catch (err) {
@@ -237,15 +243,46 @@ const fetchPlayerDetail = async () => {
   }
 }
 
-const setupChart = (dates, scores) => {
+const formatChartDate = (value) => {
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return String(value)
+
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
+const setupChart = (historyPoints) => {
   chartOption.value = {
-    tooltip: { trigger: 'axis' },
+    tooltip: {
+      trigger: 'axis',
+      axisPointer: { type: 'line' },
+      formatter: (params) => {
+        const point = Array.isArray(params) ? params[0] : params
+        if (!point) return ''
+
+        const [dateValue, eloValue] = point.data || []
+        return `${formatChartDate(dateValue)}<br/>战力：${eloValue}`
+      }
+    },
     grid: { top: '10%', left: '3%', right: '4%', bottom: '3%', containLabel: true },
-    xAxis: { type: 'category', data: dates, boundaryGap: false },
+    xAxis: {
+      type: 'time',
+      boundaryGap: false,
+      axisTick: { alignWithLabel: true },
+      axisLabel: {
+        hideOverlap: true,
+        interval: 'auto',
+        rotate: isNarrowScreen.value ? 35 : 0,
+        margin: isNarrowScreen.value ? 12 : 8,
+        formatter: (value) => formatChartDate(value)
+      }
+    },
     yAxis: { type: 'value', scale: true },
     dataZoom: [{ type: 'inside' }],
     series: [{
-      data: scores,
+      data: historyPoints,
       type: 'line',
       smooth: true,
       symbol: 'circle',
