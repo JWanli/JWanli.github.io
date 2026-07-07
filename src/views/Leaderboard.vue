@@ -47,20 +47,18 @@
         </el-table-column>
 
         <!-- 3. 选手：自适应 -->
-        <el-table-column label="选手" min-width="90">
+        <el-table-column min-width="90">
+          <template #header>
+            <div class="player-header">选手</div>
+          </template>
           <template #default="scope">
-            <!-- 移除 div 上的 @click，交由 tr 统一处理 -->
             <div class="player-cell">
-              <el-avatar :size="isMobile ? 32 : 44" :src="scope.row.avatar_url" class="avatar">
-                {{ scope.row.name.charAt(0) }}
-              </el-avatar>
-              
-                  <div class="name-info">
-                    <span class="main-name">{{ scope.row.name }}</span>
-                    <span v-if="scope.row.nick_name" class="sub-name">
-                      {{ scope.row.nick_name }}
-                    </span>
-                  </div>
+              <div class="name-info">
+                <span class="main-name">{{ scope.row.name }}</span>
+                <span v-if="scope.row.nick_name" class="sub-name">
+                  {{ scope.row.nick_name }}
+                </span>
+              </div>
             </div>
           </template>
         </el-table-column>
@@ -200,7 +198,7 @@ const handleRowClick = (row) => {
 const buildLeaderboardQuery = () => {
   let query = supabase
     .from('players')
-    .select('id, name, nick_name, region, current_elo, avatar_url, activity, grade, rank_change')
+    .select('id, name, nick_name, region, current_elo, activity, grade, rank_change')
 
   if (sortProp.value === 'activity') {
     const asc = sortOrder.value === 'ascending'
@@ -528,20 +526,17 @@ html.dark .table-frame {
 .player-cell {
   display: flex;
   align-items: center;
-  /* cursor: pointer; 移除这里单独的 pointer */
-  padding-left: 0px; /* ✅ 新增：整体右移一点 */
+  padding-left: 18px;
 }
-.avatar {
-  margin-right: 15px;
-  border: 2px solid #fff;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-  transition: border-color 0.3s;
+.player-header {
+  padding-left: 18px;
+  text-align: left;
 }
 .name-info {
   display: flex;
   flex-direction: row; 
   align-items: baseline; 
-  gap: 8px;
+  gap: 6px;
   /* 手机端防止溢出 */
   flex-wrap: wrap; 
 }
@@ -633,11 +628,6 @@ html.dark .table-frame {
     font-size: 13px; 
   }
 
-  /* 调整头像在手机上的右边距 */
-  .avatar {
-    margin-right: 6px;
-  }
-
   /* 名字信息竖向排列，防止挤压 */
   .name-info {
     flex-direction: column !important; /* 强制竖向 */
@@ -671,6 +661,19 @@ html.dark .table-frame {
     line-height: 1.2;
     margin-top: 0;
   }
+
+  /* 让手机端“选手”标题与正文更贴合，同时保留给名字的空间 */
+  :deep(.el-table__header-wrapper th:nth-child(3) .cell) {
+    padding-left: 8px !important;
+  }
+
+  .player-cell {
+    padding-left: 10px;
+  }
+
+  .player-header {
+    padding-left: 10px;
+  }
   
   /* 强制固定行高，防止有无昵称出现高度差 */
   :deep(.el-table__row) {
@@ -687,6 +690,12 @@ html.dark .table-frame {
   /* 强制压缩表格单元格的左右 padding，挤出空间给名字 */
   :deep(.el-table .cell) {
     padding: 0 2px !important;
+  }
+
+  :deep(.el-table__header-wrapper th:nth-child(3) .cell),
+  :deep(.el-table__body-wrapper td:nth-child(3) .cell) {
+    padding-left: 8px !important;
+    padding-right: 2px !important;
   }
   
   /* 优化：第一列和最后一列增加边距，防止贴边 */
@@ -705,8 +714,8 @@ html.dark .table-frame {
     font-size: 13px !important; /* 🔴 调小字体 */
     font-weight: 700;
     line-height: 1.2;
-  display: flex;
-  align-items: center;
+    display: flex;
+    align-items: center;
     font-weight: 600;
 }
 
@@ -776,12 +785,7 @@ html.dark .rank-normal {
   color: #A3A6AD;
 }
 
-html.dark .avatar {
-  border-color: #363637; /* 深色边框，避免白色突兀 */
-  background-color: #2b2b2b;
-}
-
-html.dark-l5 {
+html.dark .level-l5 {
   background: #4C4D4F; /* 深色模式下的L5背景 */
   color: #b1b3b8;
 }

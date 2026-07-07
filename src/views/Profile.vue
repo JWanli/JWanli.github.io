@@ -8,10 +8,6 @@
       
       <el-card class="header-card" shadow="always">
         <div class="header-inner">
-          <el-avatar :size="100" :src="player.avatar_url" class="big-avatar">
-            {{ player.name.charAt(0) }}
-          </el-avatar>
-          
           <div class="header-info">
             <div class="name-row">
               <h1 class="name">{{ player.name }}</h1>
@@ -326,20 +322,28 @@ onMounted(() => {
 .header-inner {
   display: flex;
   align-items: center;
-  gap: 25px;
+  gap: 18px;
+  justify-content: center;
+  text-align: center;
 }
 .header-info {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
 }
 .name-row {
   display: flex;
   align-items: center;
   gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
 }
 .name { margin: 0; font-size: 28px; color: #303133; transition: color 0.3s; }
 .nickname { color: #909399; margin: 5px 0 10px; font-size: 14px; transition: color 0.3s; }
-.meta-row { display: flex; gap: 15px; margin-bottom: 10px; color: #606266; font-size: 14px; transition: color 0.3s; }
-.teams-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.meta-row { display: flex; gap: 15px; margin-bottom: 10px; color: #606266; font-size: 14px; transition: color 0.3s; justify-content: center; flex-wrap: wrap; }
+.teams-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: center; }
 .label { font-size: 13px; color: #909399; }
 .team-tag { border-radius: 4px; }
 
@@ -468,6 +472,10 @@ html.dark .name { color: #E5EAF3; }
 html.dark .nickname { color: #A3A6AD; }
 html.dark .meta-row { color: #A3A6AD; }
 html.dark .label { color: #A3A6AD; }
+
+html.dark .header-inner {
+  align-items: center;
+}
 
 /* 分隔线与装饰线 */
 html.dark .elo-box {
