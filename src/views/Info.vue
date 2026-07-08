@@ -17,7 +17,7 @@
             <div class="card-body">
               <ul class="bullet-list">
                 <li class="text-body"><strong>【地区】</strong>通常为城市，也可能为省、县，总之以选手自我认同的地区名称作显示。</li>
-                <li class="text-body"><strong>【位序】</strong>对应右上角的优先排序，默认活跃优先（显示为 Elo↓活跃▼），点击后切换至 Elo 优先（显示为 Elo▼活跃↓）。</li>
+                <li class="text-body"><strong>【位序】</strong>对应右上角的优先排序，默认分数优先（显示为 分数▼），点击后切换至活跃优先（显示为 活跃▼）。</li>
                 <li class="text-body"><strong>【选手名】</strong>为选手实名+昵称（灰色），无实名选手直接显示昵称。</li>
                 <li class="text-body"><strong>【Elo】</strong>Elo等级分为国际通用的竞技预测评分系统，大枪等级分采用的具体算法包含若干修正，详见后文“公式汇总”部分。</li>
                 <li class="text-body"><strong>【活跃】</strong>刻画选手在长时段内参赛情况的数值，也可看作对Elo分的可靠性测量，详见后文“公式汇总”部分。</li>
