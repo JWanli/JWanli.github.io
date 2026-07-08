@@ -24,4 +24,5 @@ dist-ssr
 *.sw?
 .env
 /python_files/asset/*
+other_files
 __pycache__/
