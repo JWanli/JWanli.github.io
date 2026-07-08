@@ -35,7 +35,7 @@ It includes a real-time leaderboard, per-player profile pages (with Elo history 
 │     ├─ Home.vue
 │     ├─ Leaderboard.vue
 │     ├─ Profile.vue
-│     └─ Activity.vue
+│     └─ Info.vue
 ├─ asset/elo.txt           # Historical data source for migration scripts
 └─ python_files/           # Admin/migration utilities (Supabase service key)
 ```

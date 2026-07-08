@@ -37,7 +37,7 @@
         >
           <template #default="scope">
             <span
-              v-if="scope.row.rank_change"
+              v-if="scope.row.rank_change === '+' || (showRankChange && scope.row.rank_change)"
               class="rank-change"
               :class="getRankChangeClass(scope.row.rank_change)"
             >
@@ -175,6 +175,8 @@ const isMobile = computed(() => width.value < 768)
 // 2. isTablet: 定义 768px ~ 1100px 为平板或小屏笔记本区间
 // 在这个区间内，我们隐藏次要信息(如昵称)，保证主要信息不换行
 const isTablet = computed(() => width.value >= 768 && width.value < 1100)
+
+const showRankChange = computed(() => sortProp.value === 'current_elo' && sortOrder.value === 'descending')
 
 // 处理表格排序
 const handleSortChange = ({ prop, order }) => {

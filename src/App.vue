@@ -20,7 +20,7 @@
         <div class="center-nav">
           <el-menu-item index="/">主页</el-menu-item>
           <el-menu-item index="/rank">排行榜</el-menu-item>
-          <el-menu-item index="/activity">活动</el-menu-item>
+          <el-menu-item index="/info">信息</el-menu-item>
         </div>
       </el-menu>
 

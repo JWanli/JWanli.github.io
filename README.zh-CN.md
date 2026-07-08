@@ -33,7 +33,7 @@
 │     ├─ Home.vue          # 主页
 │     ├─ Leaderboard.vue   # 排行榜
 │     ├─ Profile.vue       # 选手详情
-│     └─ Activity.vue      # 活动页
+│     └─ Info.vue          # 信息页
 ├─ asset/elo.txt           # 历史数据源（供迁移脚本使用）
 +└─ python_files/           # 管理/迁移脚本（使用 Supabase 管理密钥）
 ```

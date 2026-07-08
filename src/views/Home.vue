@@ -11,9 +11,12 @@
     <div class="cards-layout">
       
       <!-- 原有的介绍板块，改为介绍等级分 -->
-      <div class="intro-box info-card">
-        <h3>📊 什么是大枪等级分？</h3>
-        <p>这是一套旨在量化长枪竞技水平的数据系统。我们记录真实的实战与比赛结果，通过算法动态计算每位选手的战力值，直观呈现选手的竞技状态与成长轨迹。</p>
+      <div class="intro-box action-card info-card" @click="router.push('/info')">
+        <div class="action-content">
+          <h3>📊 什么是大枪等级分？</h3>
+          <p>这是一套旨在量化长枪竞技水平的数据系统。我们记录真实的实战与比赛结果，通过算法动态计算每位选手的战力值，直观呈现选手的竞技状态与成长轨迹。</p>
+        </div>
+        <div class="action-icon">➜</div>
       </div>
 
       <!-- 新增：跳转排行榜的 Block -->
@@ -89,6 +92,10 @@ h1 {
   width: 100%;
   max-width: 600px;
   transition: all 0.3s ease;
+}
+
+.info-card {
+  min-height: 108px;
 }
 
 .intro-box h3 {
