@@ -260,9 +260,14 @@ def migrate():
                 "rank_change": rank_change,
             }
             
-            # 写入 Player (先查是否存在)
+            # 写入 Player (先查是否存在，增加联合匹配条件以防同名选手被跳过覆盖)
             def _query_player():
-                return supabase.table('players').select('id').eq('name', actual_name).execute()
+                return supabase.table('players').select('id') \
+                    .eq('name', actual_name) \
+                    .eq('current_elo', player_data['current_elo']) \
+                    .eq('max_elo', player_data['max_elo']) \
+                    .eq('activity', player_data['activity']) \
+                    .execute()
             
             res_p = retry_on_failure(_query_player)
             
