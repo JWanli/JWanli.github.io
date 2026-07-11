@@ -1,136 +1,134 @@
-# 大枪等级分（Da Qiang Elo Rating）
+# 大枪等级分
 
-这是一个基于 **Vue 3 + Vite** 的前端站点，用来展示大枪（长枪）竞技对抗的 **Elo 等级分**与数据看板。
+[English](README.md)
 
-站点包含综合排行榜、选手详情页（Elo 历史曲线、荣誉、团体等）、近期活动页，并支持暗黑模式。路由采用 Hash 模式，适合部署到 GitHub Pages。
+这是一个面向传统大枪竞技的 Elo 等级分与排行榜网站。项目将记录的对抗或比赛结果转化为易于浏览的选手排名、竞技状态与等级分历史。
 
-## 功能概览
+<!-- TODO: 在此补充线上站点地址。 -->
+<!-- TODO: 在此补充一至两张项目截图或简短演示 GIF。 -->
 
-- **综合排行榜**：表格展示实时排名，可排序；支持升降标记（↑ / ↓ / +）；移动端适配。
-- **选手详情页**：展示团体、荣誉、简介与 **Elo 历史折线图**。
-- **暗黑模式**：基于 Element Plus 暗色变量 + `@vueuse/core`。
-- **GitHub Pages 友好路由**：使用 `#/...` 的 Hash History，无需服务器重写规则。
+## 项目亮点
+
+- **实时排行榜**：按 Elo 分数、活跃度、地区、等级与排名变化浏览选手。
+- **选手档案**：展示团体、荣誉、简介、最高分与 Elo 历史曲线。
+- **等级分说明**：介绍 Elo 计算模型及排行榜标识的含义。
+- **响应式界面**：适配桌面端与移动端，并支持浅色/深色主题切换。
+- **GitHub Pages 部署**：使用 Hash 路由，无需服务器重写规则也可正常刷新页面。
 
 ## 技术栈
 
-- Vue 3 + Vite
+- Vue 3 与 Vite
 - Vue Router（Hash History）
-- Element Plus
-- Supabase（`@supabase/supabase-js`）
-- ECharts（`vue-echarts`）
+- Element Plus 与 `@vueuse/core`
+- Supabase
+- ECharts（通过 `vue-echarts` 集成）
+- GitHub Actions 与 GitHub Pages
 
-## 目录结构
+## 项目结构
 
-```
+```text
 .
-├─ index.html
-├─ src/
-│  ├─ main.js              # 应用入口
-│  ├─ App.vue              # 整体布局 + 顶部导航 + 暗黑开关
-│  ├─ supabase.js          # Supabase 前端客户端
-│  ├─ router/index.js      # 路由配置
-│  └─ views/
-│     ├─ Home.vue          # 主页
-│     ├─ Leaderboard.vue   # 排行榜
-│     ├─ Profile.vue       # 选手详情
-│     └─ Info.vue          # 信息页
-├─ asset/elo.txt           # 历史数据源（供迁移脚本使用）
-+└─ python_files/           # 管理/迁移脚本（使用 Supabase 管理密钥）
+├── src/
+│   ├── assets/              # 项目图片资源
+│   ├── router/index.js      # 路由配置
+│   ├── views/               # 首页、排行榜、信息页与选手详情页
+│   ├── App.vue              # 公共布局、导航与主题切换
+│   ├── main.js              # 应用入口
+│   └── supabase.js          # Supabase 客户端配置
+├── python_files/
+│   ├── asset/               # 历史 Elo 原始数据
+│   ├── migrate_old_data.py  # 历史数据导入工具
+│   ├── backfill_rank_change.py
+│   └── reset_import.py      # 会清空数据的重置工具
+├── .github/workflows/
+│   └── deploy.yml           # GitHub Pages 自动部署工作流
+├── package.json
+└── vite.config.js
 ```
 
 ## 本地开发
 
 ### 环境要求
 
-- 建议 Node.js 18+
+- 建议使用 Node.js 20 或更高版本（部署工作流使用 Node.js 20）。
+- 仅在运行数据维护脚本时，建议安装 Python 3.10 或更高版本。
 
-### 安装依赖
+### 安装与启动
 
 ```bash
 npm install
-```
-
-### 启动开发服务器
-
-```bash
 npm run dev
 ```
 
-### 构建
+### 构建与预览
 
 ```bash
 npm run build
-```
-
-### 预览生产构建
-
-```bash
 npm run preview
 ```
 
-## Supabase 配置说明
+## Supabase 数据
 
-前端通过 Supabase 读取数据（典型表包括）：
+网站通过 Supabase 读取选手、团体、选手与团体关系以及 Elo 历史数据。应用所需的数据表包括：
 
-- `players`（id、name、nick_name、region、current_elo、max_elo、avatar_url、activity、grade、rank_change、achievements(JSON)、bio 等）
+- `players`
 - `teams`
 - `player_teams`
 - `elo_history`
 
-### 前端 Key（公开）
+### 安全说明
 
-前端的 Supabase 客户端目前写在 `src/supabase.js`，使用 **publishable/anon key**。
+浏览器端只能使用 Supabase 的 publishable/anonymous key，并应配合正确的 Row Level Security（RLS）策略。不要将 `service_role` key 写入前端代码、README 或任何被提交的环境文件。
 
-- 这是允许在浏览器中使用的 key。
-- **不要**把 `service_role`（服务角色密钥）放进前端代码。
+生产环境建议通过 Vite 环境变量配置客户端，例如：
 
-推荐改进（可选）：改为 Vite 环境变量（便于多环境/避免硬编码）
+```bash
+VITE_SUPABASE_URL=your-project-url
+VITE_SUPABASE_ANON_KEY=your-publishable-key
+```
 
-1. 新建 `.env.local`：
+<!-- TODO: 补充数据库结构、RLS 策略和前端配置的正式流程。 -->
 
-   ```bash
-   VITE_SUPABASE_URL=...
-   VITE_SUPABASE_ANON_KEY=...
-   ```
+## 历史数据维护
 
-2. 将 `src/supabase.js` 改为读取 `import.meta.env`。
+`python_files/` 提供历史 Elo 数据导入及排行榜字段维护工具。
 
-## 数据迁移/管理脚本（Python）
-
-仓库的 `python_files/` 下提供了将 `asset/elo.txt` 导入 Supabase 的脚本。
-
-### 环境要求
-
-- 建议 Python 3.10+
-
-安装依赖：
+安装 Python 依赖：
 
 ```bash
 pip install supabase python-dotenv
 ```
 
-在仓库根目录（或 `python_files/` 目录）创建 `.env`：
+在仓库根目录或 `python_files/` 中创建不提交到 Git 的 `.env` 文件：
 
 ```bash
-SUPABASE_URL=...
-SUPABASE_KEY=...
+SUPABASE_URL=your-project-url
+SUPABASE_KEY=your-server-side-key
 ```
 
-说明：
+常用命令：
 
-- 这里的 `SUPABASE_KEY` 通常是 **service role key**，仅用于管理脚本；务必保密且不要提交到仓库。
+```bash
+python python_files/migrate_old_data.py
+python python_files/backfill_rank_change.py
+```
 
-### 常用流程
+> 注意：`python python_files/reset_import.py` 会重置已导入的数据。执行前请审查脚本内容并完成数据库备份。
 
-- （可选，危险）清空表后重导：`python python_files/reset_import.py`
-- 导入历史数据：`python python_files/migrate_old_data.py`
-- 回填升降字段：`python python_files/backfill_rank_change.py`
+<!-- TODO: 补充日常数据更新、审核要求与备份位置。 -->
 
-## 部署（GitHub Pages）
+## 部署
 
-- 路由使用 `createWebHashHistory()`，因此 GitHub Pages 上直接刷新页面也能正常访问。
-- 若部署在子路径（例如 `https://user.github.io/repo/`），可能需要在 `vite.config.js` 设置 `base`。
+向 `main` 分支推送代码会触发 `.github/workflows/deploy.yml`。该工作流会使用 `npm ci` 安装依赖、构建 Vite 应用，并将 `dist/` 部署到 GitHub Pages。
 
-## 许可证
+项目使用 Hash 路由（`#/...`），因此可以兼容静态托管环境中的直接访问与刷新。
 
-当前未指定 License。
+<!-- TODO: 如适用，请补充 GitHub Pages 设置及自定义域名配置。 -->
+
+## TODO
+
+<!-- TODO: 补充维护者名称与联系方式。 -->
+<!-- TODO: 补充贡献说明，或链接至 CONTRIBUTING.md。 -->
+<!-- TODO: 选择并补充开源许可证。 -->
+- [ ] **TODO：**将 Python 脚本改为增量更新，不再采用“清空后重新写入”的流程。
+- [ ] **TODO：**增加“大枪地图”页面的外链与海报。
