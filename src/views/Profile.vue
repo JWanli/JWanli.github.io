@@ -324,6 +324,13 @@ const getChartViewRange = (historyPoints, globalDateRange) => {
 
 const setupChart = (historyPoints, globalDateRange) => {
   const viewRange = getChartViewRange(historyPoints, globalDateRange)
+  const dataZoom = historyPoints.length >= 3
+    ? [{
+        type: 'inside',
+        xAxisIndex: 0,
+        filterMode: 'none'
+      }]
+    : []
 
   chartOption.value = {
     tooltip: {
@@ -359,7 +366,7 @@ const setupChart = (historyPoints, globalDateRange) => {
       interval: CHART_ELO_AXIS_INTERVAL,
       scale: true
     },
-    dataZoom: [{ type: 'inside' }],
+    dataZoom,
     series: [{
       data: historyPoints,
       type: 'line',
