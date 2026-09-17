@@ -11,6 +11,8 @@ load_dotenv()
 SUPABASE_URL = os.environ.get("SUPABASE_URL")
 SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
 
+DEFAULT_ELO_FILE = os.path.join(os.path.dirname(__file__), "asset", "elo.txt")
+
 if not SUPABASE_URL or not SUPABASE_KEY:
     raise RuntimeError("请在 .env 文件中设置 SUPABASE_URL 和 SUPABASE_KEY")
 
@@ -50,10 +52,11 @@ def convert_days_to_date(days_remaining):
 
 # === 2. 数据读取与清洗 ===
 
-def load_elo_txt(filepath="asset\\elo.txt"):
+def load_elo_txt(filepath=None):
     """
     读取 elo.txt 文件，去掉 JS 的定义头和注释，解析为 Python 对象
     """
+    filepath = filepath or os.environ.get("ELO_FILE") or DEFAULT_ELO_FILE
     with open(filepath, "r", encoding="utf-8") as f:
         content = f.read()
     
