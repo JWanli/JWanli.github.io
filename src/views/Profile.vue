@@ -161,6 +161,15 @@ const { width } = useWindowSize()
 
 const isNarrowScreen = computed(() => width.value < 768)
 
+const CHART_FULL_ELO_RANGE = { min: 0, max: 1000 }
+const CHART_ELO_AXIS_INTERVAL = 100
+const CHART_VIEW_RATIOS = {
+  left: 0.1,
+  right: 0.3,
+  top: 0.5,
+  bottom: 0.5
+}
+
 // 判断是否有荣誉数据
 const hasAchievements = computed(() => {
   if (!achievements.value) return false
@@ -229,7 +238,29 @@ const fetchPlayerDetail = async () => {
         .map(d => [d.date, d.new_elo])
         .sort((a, b) => new Date(a[0]) - new Date(b[0]))
 
-      setupChart(historyPoints)
+      const [earliestResult, latestResult] = await Promise.all([
+        supabase
+          .from('elo_history')
+          .select('date')
+          .order('date', { ascending: true })
+          .limit(1),
+        supabase
+          .from('elo_history')
+          .select('date')
+          .order('date', { ascending: false })
+          .limit(1)
+      ])
+
+      const globalDateRange = (
+        !earliestResult.error &&
+        !latestResult.error &&
+        earliestResult.data?.[0]?.date &&
+        latestResult.data?.[0]?.date
+      )
+        ? [earliestResult.data[0].date, latestResult.data[0].date]
+        : null
+
+      setupChart(historyPoints, globalDateRange)
     }
 
   } catch (err) {
@@ -249,7 +280,51 @@ const formatChartDate = (value) => {
   return `${year}-${month}-${day}`
 }
 
-const setupChart = (historyPoints) => {
+const getChartViewRange = (historyPoints, globalDateRange) => {
+  if (!historyPoints.length) return null
+
+  const timestamps = historyPoints
+    .map(([dateValue]) => new Date(dateValue).getTime())
+    .filter(Number.isFinite)
+  const eloValues = historyPoints
+    .map(([, eloValue]) => Number(eloValue))
+    .filter(Number.isFinite)
+
+  if (!timestamps.length || !eloValues.length) return null
+
+  const dataMinTime = Math.min(...timestamps)
+  const dataMaxTime = Math.max(...timestamps)
+  const globalMinTime = globalDateRange
+    ? new Date(globalDateRange[0]).getTime()
+    : dataMinTime
+  const globalMaxTime = globalDateRange
+    ? new Date(globalDateRange[1]).getTime()
+    : dataMaxTime
+  const fullMinTime = Number.isFinite(globalMinTime) ? globalMinTime : dataMinTime
+  const fullMaxTime = Number.isFinite(globalMaxTime) ? globalMaxTime : dataMaxTime
+
+  const dataMinElo = Math.min(...eloValues)
+  const dataMaxElo = Math.max(...eloValues)
+  const paddedMinElo = dataMinElo - (dataMinElo - CHART_FULL_ELO_RANGE.min) * CHART_VIEW_RATIOS.bottom
+  const paddedMaxElo = dataMaxElo + (CHART_FULL_ELO_RANGE.max - dataMaxElo) * CHART_VIEW_RATIOS.top
+
+  return {
+    xMin: dataMinTime - (dataMinTime - fullMinTime) * CHART_VIEW_RATIOS.left,
+    xMax: dataMaxTime + (fullMaxTime - dataMaxTime) * CHART_VIEW_RATIOS.right,
+    yMin: Math.max(
+      CHART_FULL_ELO_RANGE.min,
+      Math.floor(paddedMinElo / CHART_ELO_AXIS_INTERVAL) * CHART_ELO_AXIS_INTERVAL
+    ),
+    yMax: Math.min(
+      CHART_FULL_ELO_RANGE.max,
+      Math.ceil(paddedMaxElo / CHART_ELO_AXIS_INTERVAL) * CHART_ELO_AXIS_INTERVAL
+    )
+  }
+}
+
+const setupChart = (historyPoints, globalDateRange) => {
+  const viewRange = getChartViewRange(historyPoints, globalDateRange)
+
   chartOption.value = {
     tooltip: {
       trigger: 'axis',
@@ -265,6 +340,8 @@ const setupChart = (historyPoints) => {
     grid: { top: '10%', left: '3%', right: '4%', bottom: '3%', containLabel: true },
     xAxis: {
       type: 'time',
+      min: viewRange?.xMin,
+      max: viewRange?.xMax,
       boundaryGap: false,
       axisTick: { alignWithLabel: true },
       axisLabel: {
@@ -275,7 +352,13 @@ const setupChart = (historyPoints) => {
         formatter: (value) => formatChartDate(value)
       }
     },
-    yAxis: { type: 'value', scale: true },
+    yAxis: {
+      type: 'value',
+      min: viewRange?.yMin,
+      max: viewRange?.yMax,
+      interval: CHART_ELO_AXIS_INTERVAL,
+      scale: true
+    },
     dataZoom: [{ type: 'inside' }],
     series: [{
       data: historyPoints,
