@@ -1,0 +1,47 @@
+name: Keep Supabase Active
+
+on:
+  schedule:
+    # Run daily at 04:17 in China Standard Time. The off-peak minute helps
+    # reduce delays that are common at the start of an hour.
+    - cron: '17 4 * * *'
+      timezone: 'Asia/Shanghai'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  heartbeat:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      SUPABASE_URL: https://hvsmloywzdlvegjfvyss.supabase.co
+      # Publishable keys are intended for public clients and remain restricted
+      # by the database's Row Level Security policies.
+      SUPABASE_PUBLISHABLE_KEY: sb_publishable_IiQz8uVag4DG2ue1HJlHww_PjIM4Oje
+
+    steps:
+      - name: Run a read-only database query
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+
+          response_file="$(mktemp)"
+          trap 'rm -f "$response_file"' EXIT
+
+          curl \
+            --fail-with-body \
+            --silent \
+            --show-error \
+            --retry 3 \
+            --retry-all-errors \
+            --connect-timeout 15 \
+            --max-time 45 \
+            --output "$response_file" \
+            "$SUPABASE_URL/rest/v1/players?select=id&limit=1" \
+            --header "apikey: $SUPABASE_PUBLISHABLE_KEY" \
+            --header "Accept: application/json"
+
+          jq --exit-status 'type == "array"' "$response_file" > /dev/null
+          echo "Supabase heartbeat succeeded."
