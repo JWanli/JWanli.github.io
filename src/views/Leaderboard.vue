@@ -207,6 +207,7 @@ const buildLeaderboardQuery = () => {
     query = query
       .order('activity', { ascending: asc, nullsLast: true })
       .order('current_elo', { ascending: false })
+      .order('id', { ascending: true })
   } else {
     const asc = sortOrder.value === 'ascending'
     query = query.order(sortProp.value, { ascending: asc })
@@ -215,6 +216,9 @@ const buildLeaderboardQuery = () => {
     if (sortProp.value !== 'current_elo') {
       query = query.order('current_elo', { ascending: false })
     }
+
+    // 分页查询必须有唯一且稳定的最终排序键，避免同分选手跨页重复或遗漏
+    query = query.order('id', { ascending: true })
   }
 
   return query
@@ -246,11 +250,15 @@ const fetchMore = async () => {
     const { data, error } = await query.range(from, to)
     if (error) throw error
 
-    const rows = (data || []).map(r => ({ ...r, __justAdded: true }))
+    const fetchedRows = data || []
+    const existingIds = new Set(tableData.value.map(row => row.id))
+    const rows = fetchedRows
+      .filter(row => !existingIds.has(row.id))
+      .map(row => ({ ...row, __justAdded: true }))
     tableData.value = tableData.value.concat(rows)
     pageIndex.value += 1
 
-    if (rows.length < pageSize.value) {
+    if (fetchedRows.length < pageSize.value) {
       hasMore.value = false
     }
 
